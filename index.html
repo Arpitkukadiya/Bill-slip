@@ -1,0 +1,239 @@
+Based on the original structure from e8574c04-5666-41f3-94df-add5c9cb20be and the logic from 2b214655-af87-4536-9bef-13681df4cdab, here is the complete, single-file implementation.
+It upgrades the original concept to match your new product list (Mobile, Camera, Remote Key, Power Bank, Smart Watch, Bluetooth Earphone, Bag, Box Number) and includes a modern, clean CSS design. It also features a dedicated Print Layout (@media print) so that when the print window pops up, only the clean, professional slip is printed—hiding the form controls automatically.
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Receipt Slip</title>
+    <style>
+        /* --- Modern & Clean Styling --- */
+        :root {
+            --primary-color: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg-color: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-main: #1f2937;
+            --text-muted: #4b5563;
+            --border-color: #e5e7eb;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .container {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            width: 100%;
+            max-width: 500px;
+        }
+
+        h2 {
+            margin-top: 0;
+            margin-bottom: 24px;
+            color: var(--primary-color);
+            font-size: 24px;
+            text-align: center;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        label {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        input[type="text"], input[type="number"] {
+            padding: 10px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 15px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            outline: none;
+        }
+
+        input[type="text"]:focus, input[type="number"]:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: var(--primary-hover);
+        }
+
+        /* --- Preview / Print Slip Box --- */
+        .slip-preview {
+            background: #fff;
+            border: 2px dashed #9ca3af;
+            padding: 25px;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 400px;
+            box-sizing: border-box;
+        }
+
+        .slip-title {
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .slip-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px dashed var(--border-color);
+            font-size: 15px;
+        }
+
+        .slip-row span:first-child {
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .slip-row span:last-child {
+            color: #000;
+        }
+
+        /* --- Print Specific Styling --- */
+        @media print {
+            body {
+                background: none;
+                padding: 0;
+                margin: 0;
+            }
+            .container {
+                display: none; /* Hide the input form during print */
+            }
+            .slip-preview {
+                border: none;
+                max-width: 100%;
+                width: 100%;
+                padding: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Input Form Section -->
+    <div class="container">
+        <h2>Item Checklist Form</h2>
+        <form id="invoiceForm">
+            <div class="form-group">
+                <label for="customer">Customer Name</label>
+                <input type="text" id="customer" placeholder="John Doe" required>
+            </div>
+            <div class="form-group">
+                <label for="mobile">Mobile Details</label>
+                <input type="text" id="mobile" placeholder="e.g., iPhone 15 Pro">
+            </div>
+            <div class="form-group">
+                <label for="camera">Camera Details</label>
+                <input type="text" id="camera" placeholder="e.g., Sony Alpha 7">
+            </div>
+            <div class="form-group">
+                <label for="remoteKey">Remote Key ID</label>
+                <input type="text" id="remoteKey" placeholder="e.g., Key-0982">
+            </div>
+            <div class="form-group">
+                <label for="powerBank">Power Bank Details</label>
+                <input type="text" id="powerBank" placeholder="e.g., Anker 20k mAh">
+            </div>
+            <div class="form-group">
+                <label for="smartWatch">Smart Watch Details</label>
+                <input type="text" id="smartWatch" placeholder="e.g., Apple Watch S9">
+            </div>
+            <div class="form-group">
+                <label for="earphone">Bluetooth Earphone Details</label>
+                <input type="text" id="earphone" placeholder="e.g., Galaxy Buds 2">
+            </div>
+            <div class="form-group">
+                <label for="bag">Bag Details</label>
+                <input type="text" id="bag" placeholder="e.g., Black Backpack">
+            </div>
+            <div class="form-group">
+                <label for="boxNumber">Box Number</label>
+                <input type="number" id="boxNumber" placeholder="e.g., 42">
+            </div>
+
+            <button type="button" onclick="printInvoice()">Print Receipt Slip</button>
+        </form>
+    </div>
+
+    <!-- Live Preview / Printable Slip Structure -->
+    <div class="slip-preview" id="printableSlip">
+        <div class="slip-title">Item Receipt Slip</div>
+        
+        <div class="slip-row"><span>Customer Name:</span> <span id="cname">-</span></div>
+        <div class="slip-row"><span>Mobile:</span> <span id="cmobile">-</span></div>
+        <div class="slip-row"><span>Camera:</span> <span id="ccamera">-</span></div>
+        <div class="slip-row"><span>Remote Key:</span> <span id="cremoteKey">-</span></div>
+        <div class="slip-row"><span>Power Bank:</span> <span id="cpowerBank">-</span></div>
+        <div class="slip-row"><span>Smart Watch:</span> <span id="csmartWatch">-</span></div>
+        <div class="slip-row"><span>Bluetooth Earphone:</span> <span id="cearphone">-</span></div>
+        <div class="slip-row"><span>Bag Details:</span> <span id="cbag">-</span></div>
+        <div class="slip-row"><span>Box Number:</span> <span id="cboxNumber">-</span></div>
+    </div>
+
+    <script>
+        function printInvoice() {
+            // Mapping values from Form inputs to Slip display spans
+            document.getElementById("cname").innerHTML = document.getElementById("customer").value || "-";
+            document.getElementById("cmobile").innerHTML = document.getElementById("mobile").value || "-";
+            document.getElementById("ccamera").innerHTML = document.getElementById("camera").value || "-";
+            document.getElementById("cremoteKey").innerHTML = document.getElementById("remoteKey").value || "-";
+            document.getElementById("cpowerBank").innerHTML = document.getElementById("powerBank").value || "-";
+            document.getElementById("csmartWatch").innerHTML = document.getElementById("smartWatch").value || "-";
+            document.getElementById("cearphone").innerHTML = document.getElementById("earphone").value || "-";
+            document.getElementById("cbag").innerHTML = document.getElementById("bag").value || "-";
+            document.getElementById("cboxNumber").innerHTML = document.getElementById("boxNumber").value || "-";
+
+            // Open up the system print dialog
+            window.print();
+        }
+    </script>
+</body>
+</html>
+
