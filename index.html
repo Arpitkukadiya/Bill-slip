@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Product Receipt Slip</title>
+    <title>Product Receipt Slip System</title>
     <style>
-        /* --- Modern & Clean Styling --- */
+        /* --- Modern & Clean Styling Variables --- */
         :root {
             --primary-color: #4f46e5;
             --primary-hover: #4338ca;
@@ -14,6 +14,7 @@
             --text-main: #1f2937;
             --text-muted: #4b5563;
             --border-color: #e5e7eb;
+            --error-color: #ef4444;
         }
 
         body {
@@ -27,13 +28,46 @@
             align-items: flex-start;
             gap: 30px;
             flex-wrap: wrap;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        /* --- Login Screen Styling --- */
+        .login-container {
+            background: var(--card-bg);
+            padding: 40px 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            margin-top: 60px;
+            display: block; /* Visible by default */
+        }
+
+        .error-message {
+            color: var(--error-color);
+            font-size: 14px;
+            text-align: center;
+            margin-bottom: 12px;
+            display: none;
+            font-weight: 500;
+        }
+
+        /* --- Main System Styling (Hidden until login) --- */
+        .main-system {
+            display: none; /* Hidden by default */
+            width: 100%;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 30px;
+            flex-wrap: wrap;
         }
 
         .container {
             background: var(--card-bg);
             padding: 30px;
             border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             width: 100%;
             max-width: 500px;
         }
@@ -66,7 +100,7 @@
             color: var(--text-muted);
         }
 
-        input[type="text"], input[type="number"] {
+        input[type="text"], input[type="password"], input[type="number"] {
             padding: 10px 14px;
             border: 1px solid var(--border-color);
             border-radius: 6px;
@@ -75,7 +109,7 @@
             outline: none;
         }
 
-        input[type="text"]:focus, input[type="number"]:focus {
+        input[type="text"]:focus, input[type="password"]:focus, input[type="number"]:focus {
             border-color: var(--primary-color);
             box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
         }
@@ -141,8 +175,11 @@
                 padding: 0;
                 margin: 0;
             }
-            .container {
-                display: none; /* Hide the input form during print */
+            .login-container, .container {
+                display: none !important; /* Block out form inputs entirely during print */
+            }
+            .main-system {
+                display: block !important;
             }
             .slip-preview {
                 border: none;
@@ -155,69 +192,108 @@
 </head>
 <body>
 
-    <!-- Input Form Section -->
-    <div class="container">
-        <h2>Item Checklist Form</h2>
-        <form id="invoiceForm">
+    <!-- Static Login Module Section -->
+    <div class="login-container" id="loginBox">
+        <h2>System Sign In</h2>
+        <div class="error-message" id="loginError">Invalid username or password.</div>
+        <form id="loginForm" onsubmit="handleLogin(event)">
             <div class="form-group">
-                <label for="customer">Customer Name</label>
-                <input type="text" id="customer" placeholder="John Doe" required>
+                <label for="username">Username</label>
+                <input type="text" id="username" placeholder="Enter username" required>
             </div>
             <div class="form-group">
-                <label for="mobile">Mobile Details</label>
-                <input type="text" id="mobile" placeholder="e.g., iPhone 15 Pro">
+                <label for="password">Password</label>
+                <input type="password" id="password" placeholder="Enter password" required>
             </div>
-            <div class="form-group">
-                <label for="camera">Camera Details</label>
-                <input type="text" id="camera" placeholder="e.g., Sony Alpha 7">
-            </div>
-            <div class="form-group">
-                <label for="remoteKey">Remote Key ID</label>
-                <input type="text" id="remoteKey" placeholder="e.g., Key-0982">
-            </div>
-            <div class="form-group">
-                <label for="powerBank">Power Bank Details</label>
-                <input type="text" id="powerBank" placeholder="e.g., Anker 20k mAh">
-            </div>
-            <div class="form-group">
-                <label for="smartWatch">Smart Watch Details</label>
-                <input type="text" id="smartWatch" placeholder="e.g., Apple Watch S9">
-            </div>
-            <div class="form-group">
-                <label for="earphone">Bluetooth Earphone Details</label>
-                <input type="text" id="earphone" placeholder="e.g., Galaxy Buds 2">
-            </div>
-            <div class="form-group">
-                <label for="bag">Bag Details</label>
-                <input type="text" id="bag" placeholder="e.g., Black Backpack">
-            </div>
-            <div class="form-group">
-                <label for="boxNumber">Box Number</label>
-                <input type="number" id="boxNumber" placeholder="e.g., 42">
-            </div>
-
-            <button type="button" onclick="printInvoice()">Print Receipt Slip</button>
+            <button type="submit">Log In</button>
         </form>
     </div>
 
-    <!-- Live Preview / Printable Slip Structure -->
-    <div class="slip-preview" id="printableSlip">
-        <div class="slip-title">Item Receipt Slip</div>
-        
-        <div class="slip-row"><span>Customer Name:</span> <span id="cname">-</span></div>
-        <div class="slip-row"><span>Mobile:</span> <span id="cmobile">-</span></div>
-        <div class="slip-row"><span>Camera:</span> <span id="ccamera">-</span></div>
-        <div class="slip-row"><span>Remote Key:</span> <span id="cremoteKey">-</span></div>
-        <div class="slip-row"><span>Power Bank:</span> <span id="cpowerBank">-</span></div>
-        <div class="slip-row"><span>Smart Watch:</span> <span id="csmartWatch">-</span></div>
-        <div class="slip-row"><span>Bluetooth Earphone:</span> <span id="cearphone">-</span></div>
-        <div class="slip-row"><span>Bag Details:</span> <span id="cbag">-</span></div>
-        <div class="slip-row"><span>Box Number:</span> <span id="cboxNumber">-</span></div>
+    <!-- Main Dynamic Application (Initially Hidden) -->
+    <div class="main-system" id="appInterface">
+        <!-- Input Form Section -->
+        <div class="container">
+            <h2>Item Checklist Form</h2>
+            <form id="invoiceForm">
+                <div class="form-group">
+                    <label for="customer">Customer Name</label>
+                    <input type="text" id="customer" placeholder="John Doe" required>
+                </div>
+                <div class="form-group">
+                    <label for="mobile">Mobile Details</label>
+                    <input type="text" id="mobile" placeholder="e.g., iPhone 15 Pro">
+                </div>
+                <div class="form-group">
+                    <label for="camera">Camera Details</label>
+                    <input type="text" id="camera" placeholder="e.g., Sony Alpha 7">
+                </div>
+                <div class="form-group">
+                    <label for="remoteKey">Remote Key ID</label>
+                    <input type="text" id="remoteKey" placeholder="e.g., Key-0982">
+                </div>
+                <div class="form-group">
+                    <label for="powerBank">Power Bank Details</label>
+                    <input type="text" id="powerBank" placeholder="e.g., Anker 20k mAh">
+                </div>
+                <div class="form-group">
+                    <label for="smartWatch">Smart Watch Details</label>
+                    <input type="text" id="smartWatch" placeholder="e.g., Apple Watch S9">
+                </div>
+                <div class="form-group">
+                    <label for="earphone">Bluetooth Earphone Details</label>
+                    <input type="text" id="earphone" placeholder="e.g., Galaxy Buds 2">
+                </div>
+                <div class="form-group">
+                    <label for="bag">Bag Details</label>
+                    <input type="text" id="bag" placeholder="e.g., Black Backpack">
+                </div>
+                <div class="form-group">
+                    <label for="boxNumber">Box Number</label>
+                    <input type="number" id="boxNumber" placeholder="e.g., 42">
+                </div>
+
+                <button type="button" onclick="printInvoice()">Print Receipt Slip</button>
+            </form>
+        </div>
+
+        <!-- Live Preview / Printable Slip Structure -->
+        <div class="slip-preview" id="printableSlip">
+            <div class="slip-title">Item Receipt Slip</div>
+            
+            <div class="slip-row"><span>Customer Name:</span> <span id="cname">-</span></div>
+            <div class="slip-row"><span>Mobile:</span> <span id="cmobile">-</span></div>
+            <div class="slip-row"><span>Camera:</span> <span id="ccamera">-</span></div>
+            <div class="slip-row"><span>Remote Key:</span> <span id="cremoteKey">-</span></div>
+            <div class="slip-row"><span>Power Bank:</span> <span id="cpowerBank">-</span></div>
+            <div class="slip-row"><span>Smart Watch:</span> <span id="csmartWatch">-</span></div>
+            <div class="slip-row"><span>Bluetooth Earphone:</span> <span id="cearphone">-</span></div>
+            <div class="slip-row"><span>Bag Details:</span> <span id="cbag">-</span></div>
+            <div class="slip-row"><span>Box Number:</span> <span id="cboxNumber">-</span></div>
+        </div>
     </div>
 
     <script>
+        // Secure Authentication Handling
+        function handleLogin(event) {
+            event.preventDefault(); // Stop form submission reloading page
+            
+            const userField = document.getElementById("username").value;
+            const passField = document.getElementById("password").value;
+            const errorDiv = document.getElementById("loginError");
+
+            if (userField === "arpit" && passField === "arpit") {
+                // Successful Auth: Alter structural displays
+                document.getElementById("loginBox").style.display = "none";
+                document.getElementById("appInterface").style.display = "flex";
+            } else {
+                // Authentication Failure
+                errorDiv.style.display = "block";
+            }
+        }
+
+        // Invoice Processing Implementation
         function printInvoice() {
-            // Mapping values from Form inputs to Slip display spans
+            // Transfer input element parameters to display spans on runtime execution
             document.getElementById("cname").innerHTML = document.getElementById("customer").value || "-";
             document.getElementById("cmobile").innerHTML = document.getElementById("mobile").value || "-";
             document.getElementById("ccamera").innerHTML = document.getElementById("camera").value || "-";
@@ -228,10 +304,9 @@
             document.getElementById("cbag").innerHTML = document.getElementById("bag").value || "-";
             document.getElementById("cboxNumber").innerHTML = document.getElementById("boxNumber").value || "-";
 
-            // Open up the system print dialog
+            // Prompt Native System Print Utilities
             window.print();
         }
     </script>
 </body>
 </html>
-
