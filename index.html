@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Product Receipt Slip System</title>
     <style>
-        /* --- Modern Styling Variables --- */
+        /* --- Modern UI Design Variables --- */
         :root {
             --primary-color: #4f46e5;
             --primary-hover: #4338ca;
@@ -33,7 +32,7 @@
             box-sizing: border-box;
         }
 
-        /* --- Login Screen Styling --- */
+        /* --- Login Module Styling --- */
         .login-container {
             background: var(--card-bg);
             padding: 40px 30px;
@@ -54,7 +53,7 @@
             font-weight: 500;
         }
 
-        /* --- Main System Styling (Hidden until login) --- */
+        /* --- Main App Layout --- */
         .main-system {
             display: none; 
             width: 100%;
@@ -70,14 +69,14 @@
             border-radius: 12px;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             width: 100%;
-            max-width: 500px;
+            max-width: 480px;
         }
 
         h2 {
             margin-top: 0;
             margin-bottom: 24px;
             color: var(--primary-color);
-            font-size: 24px;
+            font-size: 22px;
             text-align: center;
             border-bottom: 2px solid var(--border-color);
             padding-bottom: 10px;
@@ -86,33 +85,38 @@
         form {
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            gap: 14px;
+        }
+
+        .form-row-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
         }
 
         .form-group {
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 5px;
         }
 
         label {
             font-weight: 600;
-            font-size: 14px;
+            font-size: 13px;
             color: var(--text-muted);
         }
 
         input[type="text"], input[type="password"], input[type="number"] {
-            padding: 10px 14px;
+            padding: 10px 12px;
             border: 1px solid var(--border-color);
             border-radius: 6px;
-            font-size: 15px;
-            transition: border-color 0.2s, box-shadow 0.2s;
+            font-size: 14px;
             outline: none;
+            transition: border-color 0.2s;
         }
 
         input[type="text"]:focus, input[type="password"]:focus, input[type="number"]:focus {
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
         }
 
         button {
@@ -120,7 +124,7 @@
             color: white;
             border: none;
             padding: 12px;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 600;
             border-radius: 6px;
             cursor: pointer;
@@ -132,64 +136,68 @@
             background-color: var(--primary-hover);
         }
 
-        /* --- Strict Slip Box replication from 1783228672657.jpeg --- */
+        /* --- Live Preview Receipt Structure (Matches 1783228672657.jpeg) --- */
         .slip-preview {
             background: #fff;
-            padding: 40px;
+            padding: 30px;
             width: 100%;
-            max-width: 420px;
+            max-width: 320px;
             box-sizing: border-box;
+            font-family: 'Courier New', Courier, monospace; /* Clean token receipt appearance */
             color: #000;
-            font-family: Arial, sans-serif;
+            border: 1px solid #9ca3af;
         }
 
-        .slip-header {
+        .slip-meta {
             display: flex;
             justify-content: space-between;
-            font-size: 14px;
             font-weight: bold;
-            margin-bottom: 8px;
+            font-size: 13px;
+            margin-bottom: 6px;
         }
 
         .slip-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 15px;
+            border: 1.5px solid #000;
         }
 
         .slip-table td {
-            border: 1.5px solid #000;
-            padding: 4px 8px;
-            font-size: 14px;
-        }
-
-        /* Fixed structural sizing match */
-        .slip-table td:nth-child(1) { width: 5%; text-align: center; }
-        .slip-table td:nth-child(2) { width: 80%; text-align: left; }
-        .slip-table td:nth-child(3) { width: 15%; text-align: center; font-weight: bold; }
-
-        .slip-footer {
-            font-size: 12px;
-            line-height: 1.6;
-            margin-top: 15px;
-        }
-        
-        .slip-footer .notice-heading {
+            border: 1px solid #000;
+            padding: 4px 6px;
+            font-size: 13px;
             font-weight: bold;
         }
 
-        .slip-footer .manager-signature {
-            text-align: right;
-            margin-top: 5px;
-            padding-right: 20px;
+        .slip-table td:initial {
+            font-weight: normal;
         }
 
-        /* --- Print Specific Styling --- */
+        .col-num { width: 5%; text-align: center; }
+        .col-label { width: 70%; text-align: left; }
+        .col-val { width: 25%; text-align: center; }
+
+        .slip-footer {
+            margin-top: 12px;
+            font-size: 12px;
+            font-family: sans-serif; /* For clean regional font rendering */
+            line-height: 1.4;
+            font-weight: bold;
+        }
+
+        .slip-signature {
+            text-align: right;
+            margin-top: 2px;
+            font-size: 12px;
+        }
+
+        /* --- Global Print Layout Rules --- */
         @media print {
             body {
                 background: none;
                 padding: 0;
                 margin: 0;
+                display: block;
             }
             .login-container, .container {
                 display: none !important;
@@ -199,9 +207,10 @@
             }
             .slip-preview {
                 border: none;
+                padding: 0;
+                margin: 0;
                 max-width: 100%;
                 width: 100%;
-                padding: 0;
             }
         }
     </style>
@@ -225,80 +234,134 @@
         </form>
     </div>
 
-    <!-- Main Dynamic Application -->
+    <!-- Main Application UI -->
     <div class="main-system" id="appInterface">
         <div class="container">
-            <h2>Item Checklist Form</h2>
+            <h2>Checklist Entry Form</h2>
             <form id="invoiceForm">
-                <div class="form-group">
-                    <label for="customer">Customer Name</label>
-                    <input type="text" id="customer" placeholder="John Doe" required>
+                <div class="form-row-group">
+                    <div class="form-group">
+                        <label for="srNo">Sr. No.</label>
+                        <input type="text" id="srNo" placeholder="e.g., 558" value="558">
+                    </div>
+                    <div class="form-group">
+                        <label for="boxNumber">Box Number</label>
+                        <input type="text" id="boxNumber" placeholder="Value" value="1">
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="boxNumber">Sr. No. / Box Number</label>
-                    <input type="number" id="boxNumber" placeholder="e.g., 558" required>
+                
+                <div class="form-row-group">
+                    <div class="form-group">
+                        <label for="mobile">Mobile</label>
+                        <input type="text" id="mobile" placeholder="Value" value="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="camera">Camera</label>
+                        <input type="text" id="camera" placeholder="Value" value="1">
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="mobile">Mobile Quantity</label>
-                    <input type="text" id="mobile" placeholder="e.g., 1">
+
+                <div class="form-row-group">
+                    <div class="form-group">
+                        <label for="remoteKey">Remote Key</label>
+                        <input type="text" id="remoteKey" placeholder="Value" value="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="powerBank">Power Bank</label>
+                        <input type="text" id="powerBank" placeholder="Value" value="1">
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="camera">Camera Quantity</label>
-                    <input type="text" id="camera" placeholder="e.g., 1">
+
+                <div class="form-row-group">
+                    <div class="form-group">
+                        <label for="smartWatch">Digital/Smart Watch</label>
+                        <input type="text" id="smartWatch" placeholder="Value" value="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="earphone">Bluetooth/Earphone</label>
+                        <input type="text" id="earphone" placeholder="Value" value="1">
+                    </div>
                 </div>
+
                 <div class="form-group">
-                    <label for="remoteKey">Remote Key Quantity</label>
-                    <input type="text" id="remoteKey" placeholder="e.g., 1">
-                </div>
-                <div class="form-group">
-                    <label for="powerBank">Power Bank Quantity</label>
-                    <input type="text" id="powerBank" placeholder="e.g., 1">
-                </div>
-                <div class="form-group">
-                    <label for="smartWatch">Digital Watch - Smart Watch Quantity</label>
-                    <input type="text" id="smartWatch" placeholder="e.g., 1">
-                </div>
-                <div class="form-group">
-                    <label for="earphone">Bluetooth - Earphone Quantity</label>
-                    <input type="text" id="earphone" placeholder="e.g., 1">
-                </div>
-                <div class="form-group">
-                    <label for="bag">Bag Quantity</label>
-                    <input type="text" id="bag" placeholder="e.g., 1">
+                    <label for="bag">Bag</label>
+                    <input type="text" id="bag" placeholder="Value" value="1">
                 </div>
 
                 <button type="button" onclick="printInvoice()">Print Receipt Slip</button>
             </form>
         </div>
 
-        <!-- Live Layout Match to Image 1783228672657.jpeg -->
+        <!-- Document Table Slip View -->
         <div class="slip-preview" id="printableSlip">
-            <div class="slip-header">
-                <div>Sr. No. - <span id="cboxNumber">558</span></div>
-                <div id="slipDate">05-07-2026</div>
+            <div class="slip-meta">
+                <div>Sr. No. - <span id="pSrNo">558</span></div>
+                <div><span id="pDate">05-07-2026</span></div>
             </div>
             
             <table class="slip-table">
-                <tr><td>1</td><td>Mobile :</td><td id="cmobile">1</td></tr>
-                <tr><td>2</td><td>Camera :</td><td id="ccamera">1</td></tr>
-                <tr><td>3</td><td>Remote key :</td><td id="cremoteKey">1</td></tr>
-                <tr><td>4</td><td>Power bank :</td><td id="cpowerBank">1</td></tr>
-                <tr><td>5</td><td>Digital watch - smart watch :</td><td id="csmartWatch">1</td></tr>
-                <tr><td>6</td><td>Bluetooth - earphone :</td><td id="cearphone">1</td></tr>
-                <tr><td>7</td><td>Bag :</td><td id="cbag">1</td></tr>
-                <tr><td>8</td><td>Box Number :</td><td id="cboxNumberRow">1</td></tr>
+                <tr>
+                    <td class="col-num">1</td>
+                    <td class="col-label">Mobile :</td>
+                    <td class="col-val" id="pMobile">-</td>
+                </tr>
+                <tr>
+                    <td class="col-num">2</td>
+                    <td class="col-label">Camera :</td>
+                    <td class="col-val" id="pCamera">-</td>
+                </tr>
+                <tr>
+                    <td class="col-num">3</td>
+                    <td class="col-label">Remote key :</td>
+                    <td class="col-val" id="pRemoteKey">-</td>
+                </tr>
+                <tr>
+                    <td class="col-num">4</td>
+                    <td class="col-label">Power bank :</td>
+                    <td class="col-val" id="pPowerBank">-</td>
+                </tr>
+                <tr>
+                    <td class="col-num">5</td>
+                    <td class="col-label">Digital watch - smart watch :</td>
+                    <td class="col-val" id="pSmartWatch">-</td>
+                </tr>
+                <tr>
+                    <td class="col-num">6</td>
+                    <td class="col-label">Bluetooth - earphone :</td>
+                    <td class="col-val" id="pEarphone">-</td>
+                </tr>
+                <tr>
+                    <td class="col-num">7</td>
+                    <td class="col-label">Bag :</td>
+                    <td class="col-val" id="pBag">-</td>
+                </tr>
+                <tr>
+                    <td class="col-num">8</td>
+                    <td class="col-label">Box Number :</td>
+                    <td class="col-val" id="pBoxNumber">-</td>
+                </tr>
             </table>
 
             <div class="slip-footer">
-                <div class="notice-heading">સૂચના :</div>
-                <div>આપના સામાનની જવાબદારી આપની પોતાની રહેશે.</div>
-                <div class="manager-signature">- સંચાલક</div>
+                સૂચના :<br>
+                આપના સામાનની જવાબદારી<br>
+                આપની પોતાની રહેશે.
             </div>
+            <div class="slip-signature">- સંચાલક</div>
         </div>
     </div>
 
     <script>
-        // Clean, Secure Login Verification
+        // Setup current system date formatting cleanly on screen initialization
+        window.addEventListener('DOMContentLoaded', () => {
+            const today = new Date();
+            const dd = String(today.getDate()).padStart(2, '0');
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const yyyy = today.getFullYear();
+            document.getElementById("pDate").innerText = `${dd}-${mm}-${yyyy}`;
+        });
+
+        // Safe Base64 Login Evaluation Process
         function handleLogin(event) {
             event.preventDefault();
             
@@ -306,45 +369,33 @@
             const passField = document.getElementById("password").value;
             const errorDiv = document.getElementById("loginError");
 
+            // Base64 encoding for "arpit"
             const encodedPassword = btoa(passField);
 
             if (userField === "arpit" && encodedPassword === "YXJwaXQ=") {
                 errorDiv.style.display = "none";
                 document.getElementById("loginBox").style.display = "none";
                 document.getElementById("appInterface").style.display = "flex";
-                setupCurrentDate();
             } else {
                 errorDiv.style.display = "block";
             }
         }
 
-        // Sets the current real-time system date on load/login screen success
-        function setupCurrentDate() {
-            const dateObj = new Date();
-            const day = String(dateObj.getDate()).padStart(2, '0');
-            const month = String(dateObj.getMonth() + 1).padStart(2, '0');
-            const year = dateObj.getFullYear();
-            document.getElementById("slipDate").innerText = `${day}-${month}-${year}`;
-        }
-
+        // Output table rendering and data extraction
         function printInvoice() {
-            const boxVal = document.getElementById("boxNumber").value || "-";
-            
-            // Populating data values dynamically matching table constraints
-            document.getElementById("cboxNumber").innerHTML = boxVal;
-            document.getElementById("cboxNumberRow").innerHTML = boxVal;
-            
-            document.getElementById("cmobile").innerHTML = document.getElementById("mobile").value || "-";
-            document.getElementById("ccamera").innerHTML = document.getElementById("camera").value || "-";
-            document.getElementById("cremoteKey").innerHTML = document.getElementById("remoteKey").value || "-";
-            document.getElementById("cpowerBank").innerHTML = document.getElementById("powerBank").value || "-";
-            document.getElementById("csmartWatch").innerHTML = document.getElementById("smartWatch").value || "-";
-            document.getElementById("cearphone").innerHTML = document.getElementById("earphone").value || "-";
-            document.getElementById("cbag").innerHTML = document.getElementById("bag").value || "-";
+            document.getElementById("pSrNo").innerHTML = document.getElementById("srNo").value || "-";
+            document.getElementById("pMobile").innerHTML = document.getElementById("mobile").value || "-";
+            document.getElementById("pCamera").innerHTML = document.getElementById("camera").value || "-";
+            document.getElementById("pRemoteKey").innerHTML = document.getElementById("remoteKey").value || "-";
+            document.getElementById("pPowerBank").innerHTML = document.getElementById("powerBank").value || "-";
+            document.getElementById("pSmartWatch").innerHTML = document.getElementById("smartWatch").value || "-";
+            document.getElementById("pEarphone").innerHTML = document.getElementById("earphone").value || "-";
+            document.getElementById("pBag").innerHTML = document.getElementById("bag").value || "-";
+            document.getElementById("pBoxNumber").innerHTML = document.getElementById("boxNumber").value || "-";
 
+            // Trigger targeted window printing
             window.print();
         }
     </script>
 </body>
 </html>
-
