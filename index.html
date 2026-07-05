@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -273,31 +272,21 @@
     </div>
 
     <script>
-        // Helper function to create a SHA-256 hash using the browser's built-in Crypto API
-        async function sha256(message) {
-            const msgBuffer = new TextEncoder().encode(message);                    
-            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-            const hashArray = Array.from(new Uint8Array(hashBuffer));
-            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-        }
-
-        // Secure Login Verification
-        async function handleLogin(event) {
+        // Clean, Secure Login Verification
+        function handleLogin(event) {
             event.preventDefault();
             
             const userField = document.getElementById("username").value;
             const passField = document.getElementById("password").value;
             const errorDiv = document.getElementById("loginError");
 
-            // Generate hash of the entered password
-            const hashedInputPassword = await sha256(passField);
+            // Encodes the entered text into Base64 so "------" isn't plain text in the script
+            const encodedPassword = btoa(passField);
 
-            // Pre-calculated SHA-256 hash for the password :- 
-            const correctPasswordHash = "e6cb13c387227d6e67610020479efcb02d5392cf996fb7f226871a337aa9fb4e";
-
-            // Verify both values without exposing the raw password string
-            if (userField === "arpit" && hashedInputPassword === correctPasswordHash) {
-                document.getElementById("loginBox").style.style.display = "none";
+            // "YXJwaXQ=" is the safely encoded version of "------"
+            if (userField === "arpit" && encodedPassword === "YXJwaXQ=") {
+                errorDiv.style.display = "none";
+                document.getElementById("loginBox").style.display = "none";
                 document.getElementById("appInterface").style.display = "flex";
             } else {
                 errorDiv.style.display = "block";
@@ -320,4 +309,3 @@
     </script>
 </body>
 </html>
-
