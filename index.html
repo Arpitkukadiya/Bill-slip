@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -41,7 +42,7 @@
             width: 100%;
             max-width: 400px;
             margin-top: 60px;
-            display: block; /* Visible by default */
+            display: block;
         }
 
         .error-message {
@@ -55,7 +56,7 @@
 
         /* --- Main System Styling (Hidden until login) --- */
         .main-system {
-            display: none; /* Hidden by default */
+            display: none; 
             width: 100%;
             justify-content: center;
             align-items: flex-start;
@@ -176,7 +177,7 @@
                 margin: 0;
             }
             .login-container, .container {
-                display: none !important; /* Block out form inputs entirely during print */
+                display: none !important;
             }
             .main-system {
                 display: block !important;
@@ -209,9 +210,8 @@
         </form>
     </div>
 
-    <!-- Main Dynamic Application (Initially Hidden) -->
+    <!-- Main Dynamic Application -->
     <div class="main-system" id="appInterface">
-        <!-- Input Form Section -->
         <div class="container">
             <h2>Item Checklist Form</h2>
             <form id="invoiceForm">
@@ -256,7 +256,7 @@
             </form>
         </div>
 
-        <!-- Live Preview / Printable Slip Structure -->
+        <!-- Live Preview / Printable Slip -->
         <div class="slip-preview" id="printableSlip">
             <div class="slip-title">Item Receipt Slip</div>
             
@@ -273,27 +273,38 @@
     </div>
 
     <script>
-        // Secure Authentication Handling
-        function handleLogin(event) {
-            event.preventDefault(); // Stop form submission reloading page
+        // Helper function to create a SHA-256 hash using the browser's built-in Crypto API
+        async function sha256(message) {
+            const msgBuffer = new TextEncoder().encode(message);                    
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        // Secure Login Verification
+        async function handleLogin(event) {
+            event.preventDefault();
             
             const userField = document.getElementById("username").value;
             const passField = document.getElementById("password").value;
             const errorDiv = document.getElementById("loginError");
 
-            if (userField === "arpit" && passField === "arpit") {
-                // Successful Auth: Alter structural displays
-                document.getElementById("loginBox").style.display = "none";
+            // Generate hash of the entered password
+            const hashedInputPassword = await sha256(passField);
+
+            // Pre-calculated SHA-256 hash for the password :- 
+            const correctPasswordHash = "e6cb13c387227d6e67610020479efcb02d5392cf996fb7f226871a337aa9fb4e";
+
+            // Verify both values without exposing the raw password string
+            if (userField === "arpit" && hashedInputPassword === correctPasswordHash) {
+                document.getElementById("loginBox").style.style.display = "none";
                 document.getElementById("appInterface").style.display = "flex";
             } else {
-                // Authentication Failure
                 errorDiv.style.display = "block";
             }
         }
 
-        // Invoice Processing Implementation
         function printInvoice() {
-            // Transfer input element parameters to display spans on runtime execution
             document.getElementById("cname").innerHTML = document.getElementById("customer").value || "-";
             document.getElementById("cmobile").innerHTML = document.getElementById("mobile").value || "-";
             document.getElementById("ccamera").innerHTML = document.getElementById("camera").value || "-";
@@ -304,9 +315,9 @@
             document.getElementById("cbag").innerHTML = document.getElementById("bag").value || "-";
             document.getElementById("cboxNumber").innerHTML = document.getElementById("boxNumber").value || "-";
 
-            // Prompt Native System Print Utilities
             window.print();
         }
     </script>
 </body>
 </html>
+
