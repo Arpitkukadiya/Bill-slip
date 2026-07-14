@@ -4,11 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Product Receipt Slip System...</title>
+    <!-- Include SheetJS Library for Excel Operations -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
         /* --- Modern UI Design Variables --- */
         :root {
             --primary-color: #4f46e5;
             --primary-hover: #4338ca;
+            --secondary-color: #10b981;
+            --secondary-hover: #059669;
             --bg-color: #f3f4f6;
             --card-bg: #ffffff;
             --text-main: #1f2937;
@@ -119,8 +123,14 @@
             border-color: var(--primary-color);
         }
 
+        .button-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
         button {
-            background-color: var(--primary-color);
             color: white;
             border: none;
             padding: 12px;
@@ -129,21 +139,32 @@
             border-radius: 6px;
             cursor: pointer;
             transition: background-color 0.2s;
-            margin-top: 10px;
         }
 
-        button:hover {
+        .btn-print {
+            background-color: var(--primary-color);
+        }
+
+        .btn-print:hover {
             background-color: var(--primary-hover);
         }
 
-        /* --- Live Preview Receipt Structure (Matches 1783228672657.jpeg) --- */
+        .btn-export {
+            background-color: var(--secondary-color);
+        }
+
+        .btn-export:hover {
+            background-color: var(--secondary-hover);
+        }
+
+        /* --- Live Preview Receipt Structure --- */
         .slip-preview {
             background: #fff;
             padding: 30px;
             width: 100%;
             max-width: 320px;
             box-sizing: border-box;
-            font-family: 'Courier New', Courier, monospace; /* Clean token receipt appearance */
+            font-family: 'Courier New', Courier, monospace;
             color: #000;
             border: 1px solid #9ca3af;
         }
@@ -169,10 +190,6 @@
             font-weight: bold;
         }
 
-        .slip-table td:initial {
-            font-weight: normal;
-        }
-
         .col-num { width: 5%; text-align: center; }
         .col-label { width: 70%; text-align: left; }
         .col-val { width: 25%; text-align: center; }
@@ -180,7 +197,7 @@
         .slip-footer {
             margin-top: 12px;
             font-size: 12px;
-            font-family: sans-serif; /* For clean regional font rendering */
+            font-family: sans-serif;
             line-height: 1.4;
             font-weight: bold;
         }
@@ -230,7 +247,7 @@
                 <label for="password">Password</label>
                 <input type="password" id="password" placeholder="Enter password" required>
             </div>
-            <button type="submit">Log In</button>
+            <button type="submit" style="background-color: var(--primary-color); width: 100%;">Log In</button>
         </form>
     </div>
 
@@ -288,7 +305,10 @@
                     <input type="text" id="bag" placeholder="Value" value="1">
                 </div>
 
-                <button type="button" onclick="printInvoice()">Print Receipt Slip</button>
+                <div class="button-group">
+                    <button type="button" class="btn-print" onclick="printInvoice()">Print Slip</button>
+                    <button type="button" class="btn-export" onclick="exportToExcel()">Save & Export</button>
+                </div>
             </form>
         </div>
 
@@ -352,6 +372,9 @@
     </div>
 
     <script>
+        // Array to dynamically hold Excel records during the current session
+        let excelDataLog = [];
+
         // Setup current system date formatting cleanly on screen initialization
         window.addEventListener('DOMContentLoaded', () => {
             const today = new Date();
@@ -381,20 +404,75 @@
             }
         }
 
-        // Output table rendering and data extraction
+        // Output table rendering, data extraction, and auto-logging to memory
         function printInvoice() {
-            document.getElementById("pSrNo").innerHTML = document.getElementById("srNo").value || "-";
-            document.getElementById("pMobile").innerHTML = document.getElementById("mobile").value || "-";
-            document.getElementById("pCamera").innerHTML = document.getElementById("camera").value || "-";
-            document.getElementById("pRemoteKey").innerHTML = document.getElementById("remoteKey").value || "-";
-            document.getElementById("pPowerBank").innerHTML = document.getElementById("powerBank").value || "-";
-            document.getElementById("pSmartWatch").innerHTML = document.getElementById("smartWatch").value || "-";
-            document.getElementById("pEarphone").innerHTML = document.getElementById("earphone").value || "-";
-            document.getElementById("pBag").innerHTML = document.getElementById("bag").value || "-";
-            document.getElementById("pBoxNumber").innerHTML = document.getElementById("boxNumber").value || "-";
+            const currentDate = document.getElementById("pDate").innerText;
+            const srNo = document.getElementById("srNo").value || "-";
+            const boxNumber = document.getElementById("boxNumber").value || "-";
+            const mobile = document.getElementById("mobile").value || "-";
+            const camera = document.getElementById("camera").value || "-";
+            const remoteKey = document.getElementById("remoteKey").value || "-";
+            const powerBank = document.getElementById("powerBank").value || "-";
+            const smartWatch = document.getElementById("smartWatch").value || "-";
+            const earphone = document.getElementById("earphone").value || "-";
+            const bag = document.getElementById("bag").value || "-";
+
+            // Update UI Preview
+            document.getElementById("pSrNo").innerHTML = srNo;
+            document.getElementById("pMobile").innerHTML = mobile;
+            document.getElementById("pCamera").innerHTML = camera;
+            document.getElementById("pRemoteKey").innerHTML = remoteKey;
+            document.getElementById("pPowerBank").innerHTML = powerBank;
+            document.getElementById("pSmartWatch").innerHTML = smartWatch;
+            document.getElementById("pEarphone").innerHTML = earphone;
+            document.getElementById("pBag").innerHTML = bag;
+            document.getElementById("pBoxNumber").innerHTML = boxNumber;
+
+            // Automatically record this item row into the Excel dataset array
+            excelDataLog.push({
+                "Date": currentDate,
+                "Sr. No.": srNo,
+                "Box Number": boxNumber,
+                "Mobile": mobile,
+                "Camera": camera,
+                "Remote Key": remoteKey,
+                "Power Bank": powerBank,
+                "Digital/Smart Watch": smartWatch,
+                "Bluetooth/Earphone": earphone,
+                "Bag": bag
+            });
 
             // Trigger targeted window printing
             window.print();
+
+            // Auto-increment the Serial Number for the next token entry
+            if(!isNaN(srNo)) {
+                document.getElementById("srNo").value = parseInt(srNo) + 1;
+            }
+        }
+
+        // Function to export collected rows into an external physical Excel sheet file
+        function exportToExcel() {
+            if (excelDataLog.length === 0) {
+                alert("No slip data recorded yet! Please print some slips before exporting.");
+                return;
+            }
+
+            // Create a new Excel workbook instance object
+            const workbook = XLSX.utils.book_new();
+            
+            // Convert our flat memory JSON array to a spreadsheet grid sheet
+            const worksheet = XLSX.utils.json_to_sheet(excelDataLog);
+            
+            // Append Worksheet to Workbook structure configuration
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Receipt Logs");
+            
+            // Construct filename dynamically with timestamp context
+            const dateStr = new Date().toISOString().slice(0,10);
+            const fileName = `Receipt_Data_Log_${dateStr}.xlsx`;
+            
+            // Generate raw file stream data bytes and trigger standard browser save prompt
+            XLSX.writeFile(workbook, fileName);
         }
     </script>
 </body>
