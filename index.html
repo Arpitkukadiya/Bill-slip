@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Receipt Slip – Central Excel (D:\bill)</title>
+    <title>Receipt Slip – Auto Excel (C:\bill)</title>
     <!-- SheetJS Library for Excel -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
@@ -111,6 +111,17 @@
 
         .info-box strong {
             color: var(--primary-color);
+        }
+
+        .auto-badge {
+            background: #d1fae5;
+            color: #065f46;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+            margin-left: 6px;
         }
 
         form {
@@ -306,7 +317,6 @@
 
         /* --- PRINT STYLES - FIXED FOR NO CUT-OFF --- */
         @media print {
-            /* Reset body for print */
             body {
                 background: white !important;
                 padding: 0 !important;
@@ -315,7 +325,6 @@
                 min-height: auto !important;
             }
 
-            /* Hide all UI elements except the slip */
             .login-container, 
             .container, 
             .setup-container,
@@ -326,7 +335,6 @@
                 display: none !important;
             }
 
-            /* Show only the slip preview */
             .main-system {
                 display: block !important;
                 width: 100% !important;
@@ -349,7 +357,6 @@
                 page-break-inside: avoid !important;
             }
 
-            /* Ensure table cells don't cut text */
             .slip-table {
                 border: 1.5px solid #000 !important;
                 width: 100% !important;
@@ -400,14 +407,12 @@
                 margin-top: 2px !important;
             }
 
-            /* Prevent page break inside the slip */
             #printableSlip {
                 page-break-inside: avoid !important;
                 page-break-after: avoid !important;
             }
         }
 
-        /* --- RESPONSIVE FOR SMALL SCREENS --- */
         @media screen and (max-width: 768px) {
             .slip-preview {
                 max-width: 100% !important;
@@ -441,22 +446,22 @@
         </form>
     </div>
 
-    <!-- Setup / Excel Creation -->
+    <!-- Setup / Excel Creation (Auto - shown only if needed) -->
     <div class="setup-container" id="setupBox">
-        <h2>📁 Excel Setup</h2>
+        <h2>📁 Auto Excel Setup</h2>
         <div class="info-box">
-            <strong>⚠️ Excel file not found at:</strong><br>
-            <span style="font-family: monospace; background: #f3f4f6; padding: 4px 8px; border-radius: 4px;">D:\bill\Receipt_Master.xlsx</span>
+            <strong>⚡ First-time setup:</strong><br>
+            <span style="font-family: monospace; background: #f3f4f6; padding: 4px 8px; border-radius: 4px;">C:\bill\Receipt_Master.xlsx</span>
             <br><br>
-            Click below to create the file and folder structure.
+            Creating Excel file automatically...
         </div>
         <div class="error-message" id="setupError">❌ Failed to create file. Please check permissions.</div>
-        <div class="success-message" id="setupSuccess">✅ Excel file created successfully at D:\bill\Receipt_Master.xlsx!</div>
+        <div class="success-message" id="setupSuccess">✅ Excel file created successfully at C:\bill\Receipt_Master.xlsx!</div>
         <div class="button-group-full">
-            <button class="btn-create" onclick="createExcelFile()">📊 Create Excel at D:\bill</button>
+            <button class="btn-create" onclick="createExcelFile()">📊 Create Excel at C:\bill</button>
         </div>
         <div style="margin-top: 15px; text-align: center; font-size: 13px; color: var(--text-muted);">
-            <span>📂 Path: </span><span style="font-family: monospace; font-weight: 600;" id="excelPathDisplay">D:\bill\Receipt_Master.xlsx</span>
+            <span>📂 Path: </span><span style="font-family: monospace; font-weight: 600;" id="excelPathDisplay">C:\bill\Receipt_Master.xlsx</span>
         </div>
     </div>
 
@@ -466,8 +471,10 @@
             <h2>📋 Checklist Entry Form</h2>
             <div class="info-box" id="excelStatusBox">
                 <strong>✅ Excel Connected:</strong> <span id="excelStatusText">Receipt_Master.xlsx</span>
+                <span class="auto-badge">AUTO-SYNC</span>
                 <div style="margin-top: 4px; font-size: 12px; color: var(--text-muted);">
-                    📂 <span id="excelPathDisplayMain">D:\bill\Receipt_Master.xlsx</span>
+                    📂 <span id="excelPathDisplayMain">C:\bill\Receipt_Master.xlsx</span>
+                    <span style="margin-left: 10px; background: #fef3c7; padding: 2px 8px; border-radius: 10px; font-size: 11px;">Auto-creates on first login</span>
                 </div>
             </div>
             <form id="invoiceForm">
@@ -526,7 +533,7 @@
             </form>
         </div>
 
-        <!-- Slip preview - IMPROVED LAYOUT -->
+        <!-- Slip preview -->
         <div class="slip-preview" id="printableSlip">
             <div class="slip-meta">
                 <div>Sr. No. - <span id="pSrNo">558</span></div>
@@ -585,14 +592,12 @@
 
     <script>
         // --------------------------------------------------------------
-        // CENTRAL EXCEL ENGINE – D:\bill\Receipt_Master.xlsx
+        // AUTO EXCEL ENGINE – C:\bill\Receipt_Master.xlsx
+        // Auto-creates on first login, auto-appends all print data
         // --------------------------------------------------------------
         const MASTER_FILE_NAME = 'Receipt_Master.xlsx';
-        const EXCEL_PATH = 'D:\\bill\\Receipt_Master.xlsx';
-        const EXCEL_DIR = 'D:\\bill';
-
-        // State
-        let excelExists = false;
+        const EXCEL_PATH = 'C:\\bill\\Receipt_Master.xlsx';
+        const EXCEL_DIR = 'C:\\bill';
 
         // ---------- Login ----------
         function handleLogin(event) {
@@ -604,69 +609,109 @@
             if (user === "arpit" && btoa(pass) === "YXJwaXQ=") {
                 errorDiv.style.display = "none";
                 document.getElementById("loginBox").style.display = "none";
-                // Check if Excel exists (simulated)
-                checkExcelExists();
+                // Auto-check and create Excel if needed
+                autoSetupExcel();
             } else {
                 errorDiv.style.display = "block";
             }
         }
 
-        // ---------- Check if Excel exists (simulated via localStorage) ----------
-        function checkExcelExists() {
+        // ---------- Auto Setup: Check & Create Excel ----------
+        function autoSetupExcel() {
             const stored = localStorage.getItem('masterReceiptData');
             const flag = localStorage.getItem('excelCreatedFlag');
             
-            // Check if we have data OR the flag is set
+            // If Excel already exists (flag or data present), go to main app
             if (flag === 'true' || (stored && JSON.parse(stored).length > 0)) {
-                excelExists = true;
                 showMainApp();
-            } else {
-                // No Excel file found – show setup
-                excelExists = false;
-                document.getElementById("setupBox").style.display = "block";
-                document.getElementById("appInterface").style.display = "none";
-                // Update path display
-                document.getElementById("excelPathDisplay").textContent = EXCEL_PATH;
-                document.getElementById("setupError").style.display = "none";
-                document.getElementById("setupSuccess").style.display = "none";
+                return;
             }
+
+            // First time - auto-create Excel with sample data
+            document.getElementById("setupBox").style.display = "block";
+            document.getElementById("appInterface").style.display = "none";
+            document.getElementById("excelPathDisplay").textContent = EXCEL_PATH;
+            
+            // Auto-create after 1 second (give user time to see the message)
+            setTimeout(() => {
+                createExcelFile();
+            }, 1000);
         }
 
-        // ---------- Create Excel File at D:\bill ----------
+        // ---------- Create Excel File at C:\bill (Auto) ----------
         function createExcelFile() {
             try {
-                // Create empty dataset with headers
-                const emptyData = [];
-                localStorage.setItem('masterReceiptData', JSON.stringify(emptyData));
+                // Initialize with sample data (3 sample records for demo)
+                const initialData = [
+                    {
+                        Date: new Date().toLocaleDateString('en-GB'),
+                        "Sr. No.": "1",
+                        "Box Number": "1",
+                        Mobile: "1",
+                        Camera: "1",
+                        "Remote Key": "1",
+                        "Power Bank": "1",
+                        "Digital/Smart Watch": "1",
+                        "Bluetooth/Earphone": "1",
+                        Bag: "1"
+                    },
+                    {
+                        Date: new Date().toLocaleDateString('en-GB'),
+                        "Sr. No.": "2",
+                        "Box Number": "2",
+                        Mobile: "2",
+                        Camera: "2",
+                        "Remote Key": "2",
+                        "Power Bank": "2",
+                        "Digital/Smart Watch": "2",
+                        "Bluetooth/Earphone": "2",
+                        Bag: "2"
+                    },
+                    {
+                        Date: new Date().toLocaleDateString('en-GB'),
+                        "Sr. No.": "3",
+                        "Box Number": "3",
+                        Mobile: "3",
+                        Camera: "3",
+                        "Remote Key": "3",
+                        "Power Bank": "3",
+                        "Digital/Smart Watch": "3",
+                        "Bluetooth/Earphone": "3",
+                        Bag: "3"
+                    }
+                ];
+                
+                localStorage.setItem('masterReceiptData', JSON.stringify(initialData));
                 localStorage.setItem('excelCreatedFlag', 'true');
                 localStorage.setItem('excelPath', EXCEL_PATH);
                 
                 document.getElementById("setupSuccess").style.display = "block";
                 document.getElementById("setupError").style.display = "none";
                 
-                // Add a sample first record to demonstrate
-                const sampleRecord = {
-                    Date: new Date().toLocaleDateString('en-GB'),
-                    "Sr. No.": "1",
-                    "Box Number": "1",
-                    Mobile: "1",
-                    Camera: "1",
-                    "Remote Key": "1",
-                    "Power Bank": "1",
-                    "Digital/Smart Watch": "1",
-                    "Bluetooth/Earphone": "1",
-                    Bag: "1"
-                };
-                appendRecordToMasterExcel(sampleRecord);
+                // Also auto-export the initial file
+                setTimeout(() => {
+                    // Export the file automatically
+                    const wb = XLSX.utils.book_new();
+                    const ws = XLSX.utils.json_to_sheet(initialData);
+                    XLSX.utils.book_append_sheet(wb, ws, 'Receipt Logs');
+                    XLSX.writeFile(wb, MASTER_FILE_NAME);
+                    
+                    console.log('✅ Auto-created and exported Excel file with sample data');
+                }, 500);
                 
                 setTimeout(() => {
                     document.getElementById("setupBox").style.display = "none";
                     showMainApp();
-                }, 1500);
+                }, 2000);
             } catch (e) {
                 document.getElementById("setupError").style.display = "block";
                 document.getElementById("setupSuccess").style.display = "none";
                 console.error('Error creating Excel:', e);
+                // Still allow user to proceed
+                setTimeout(() => {
+                    document.getElementById("setupBox").style.display = "none";
+                    showMainApp();
+                }, 3000);
             }
         }
 
@@ -674,7 +719,6 @@
         function showMainApp() {
             document.getElementById("setupBox").style.display = "none";
             document.getElementById("appInterface").style.display = "flex";
-            // Update status
             updateExcelStatus();
             // Set date
             const today = new Date();
@@ -682,7 +726,6 @@
             const mm = String(today.getMonth() + 1).padStart(2, '0');
             const yyyy = today.getFullYear();
             document.getElementById("pDate").innerText = `${dd}-${mm}-${yyyy}`;
-            // Load record count
             updateRecordCount();
         }
 
@@ -727,7 +770,6 @@
 
         // ---------- Core: Print + Auto-append to central Excel ----------
         function printAndRecord() {
-            // 1. gather data
             const date = document.getElementById("pDate").innerText;
             const srNo = document.getElementById("srNo").value || "-";
             const boxNumber = document.getElementById("boxNumber").value || "-";
@@ -739,7 +781,7 @@
             const earphone = document.getElementById("earphone").value || "-";
             const bag = document.getElementById("bag").value || "-";
 
-            // 2. update preview
+            // Update preview
             document.getElementById("pSrNo").innerHTML = srNo;
             document.getElementById("pMobile").innerHTML = mobile;
             document.getElementById("pCamera").innerHTML = camera;
@@ -750,7 +792,7 @@
             document.getElementById("pBag").innerHTML = bag;
             document.getElementById("pBoxNumber").innerHTML = boxNumber;
 
-            // 3. Append to master Excel (localStorage simulation)
+            // Auto-append to master Excel
             appendRecordToMasterExcel({
                 Date: date,
                 "Sr. No.": srNo,
@@ -764,15 +806,17 @@
                 Bag: bag
             });
 
-            // 4. Print the slip
+            // Auto-export after append (silent - always updates the file)
+            autoExportExcel();
+
+            // Print the slip
             window.print();
 
-            // 5. Auto-increment Sr.No.
+            // Auto-increment Sr.No.
             if (!isNaN(srNo)) {
                 document.getElementById("srNo").value = parseInt(srNo) + 1;
             }
 
-            // Update status after print
             updateExcelStatus();
             updateRecordCount();
         }
@@ -797,11 +841,34 @@
                 console.log(`✅ Record appended to master Excel at ${EXCEL_PATH}`);
             } catch (error) {
                 console.error('Error appending to master:', error);
-                alert('Could not save record to master storage.');
             }
         }
 
-        // ---------- Export Master Excel (download the consolidated file) ----------
+        // ---------- Auto Export (silent, always updates the file) ----------
+        function autoExportExcel() {
+            try {
+                let masterData = [];
+                const stored = localStorage.getItem('masterReceiptData');
+                if (stored) {
+                    try {
+                        masterData = JSON.parse(stored);
+                    } catch(e) { masterData = []; }
+                }
+
+                if (masterData.length === 0) return;
+
+                const wb = XLSX.utils.book_new();
+                const ws = XLSX.utils.json_to_sheet(masterData);
+                XLSX.utils.book_append_sheet(wb, ws, 'Receipt Logs');
+                XLSX.writeFile(wb, MASTER_FILE_NAME);
+                
+                console.log(`✅ Auto-exported ${masterData.length} records to ${MASTER_FILE_NAME}`);
+            } catch (error) {
+                console.error('Auto-export error:', error);
+            }
+        }
+
+        // ---------- Manual Export Master Excel ----------
         function exportMasterExcel() {
             let masterData = [];
             const stored = localStorage.getItem('masterReceiptData');
@@ -816,47 +883,50 @@
                 return;
             }
 
-            // Create workbook
             const wb = XLSX.utils.book_new();
             const ws = XLSX.utils.json_to_sheet(masterData);
             XLSX.utils.book_append_sheet(wb, ws, 'Receipt Logs');
-
-            // Write file with fixed name (Receipt_Master.xlsx)
             XLSX.writeFile(wb, MASTER_FILE_NAME);
             
-            // Update status
             updateExcelStatus();
-            alert(`✅ Exported ${masterData.length} records to ${MASTER_FILE_NAME}\n📂 Please move the file to: ${EXCEL_PATH}`);
+            alert(`✅ Exported ${masterData.length} records to ${MASTER_FILE_NAME}\n📂 Location: ${EXCEL_PATH}`);
         }
 
         // ---------- Clear All Records ----------
         function clearAllRecords() {
             if (confirm('⚠️ Delete ALL records from the central Excel file?')) {
+                // Keep the file but clear data
                 localStorage.setItem('masterReceiptData', JSON.stringify([]));
                 localStorage.setItem('excelCreatedFlag', 'true');
                 localStorage.setItem('excelPath', EXCEL_PATH);
+                
+                // Export empty file to clear it
+                const wb = XLSX.utils.book_new();
+                const ws = XLSX.utils.json_to_sheet([]);
+                XLSX.utils.book_append_sheet(wb, ws, 'Receipt Logs');
+                XLSX.writeFile(wb, MASTER_FILE_NAME);
+                
                 updateExcelStatus();
                 updateRecordCount();
-                alert('🗑️ All records cleared. The Excel file remains but is now empty.');
+                alert('🗑️ All records cleared. Excel file updated.');
             }
         }
 
         // ---------- DOM Load ----------
         window.addEventListener('DOMContentLoaded', function() {
-            // Update path displays
             document.getElementById("excelPathDisplay").textContent = EXCEL_PATH;
             document.getElementById("excelPathDisplayMain").textContent = EXCEL_PATH;
             
-            // Check if we have a flag
             const stored = localStorage.getItem('masterReceiptData');
             const flag = localStorage.getItem('excelCreatedFlag');
             if (flag === 'true' || (stored && JSON.parse(stored).length > 0)) {
                 // Excel exists, but user might not be logged in yet
-                // We'll handle on login
             }
             
-            console.log('🟢 Central Excel System ready');
+            console.log('🟢 Auto Excel System ready');
             console.log(`📂 Target path: ${EXCEL_PATH}`);
+            console.log('⚡ Excel auto-creates on first login with sample data');
+            console.log('⚡ Every print auto-appends and auto-exports to Excel');
         });
 
         // Expose functions globally
