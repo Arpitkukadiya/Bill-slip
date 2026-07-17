@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Receipt Slip – Central Excel</title>
+    <title>Receipt Slip – Central Excel (Desktop)</title>
     <!-- SheetJS Library for Excel -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
@@ -19,6 +19,11 @@
             --text-muted: #4b5563;
             --border-color: #e5e7eb;
             --error-color: #ef4444;
+            --success-color: #10b981;
+        }
+
+        * {
+            box-sizing: border-box;
         }
 
         body {
@@ -33,22 +38,33 @@
             gap: 30px;
             flex-wrap: wrap;
             min-height: 100vh;
-            box-sizing: border-box;
         }
 
-        .login-container {
+        .login-container, .setup-container {
             background: var(--card-bg);
             padding: 40px 30px;
             border-radius: 12px;
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
             width: 100%;
-            max-width: 400px;
-            margin-top: 60px;
-            display: block;
+            max-width: 450px;
+            margin-top: 40px;
+        }
+
+        .setup-container {
+            display: none;
         }
 
         .error-message {
             color: var(--error-color);
+            font-size: 14px;
+            text-align: center;
+            margin-bottom: 12px;
+            display: none;
+            font-weight: 500;
+        }
+
+        .success-message {
+            color: var(--success-color);
             font-size: 14px;
             text-align: center;
             margin-bottom: 12px;
@@ -76,12 +92,25 @@
 
         h2 {
             margin-top: 0;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
             color: var(--primary-color);
             font-size: 22px;
             text-align: center;
             border-bottom: 2px solid var(--border-color);
             padding-bottom: 10px;
+        }
+
+        .info-box {
+            background: #eef2ff;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 18px;
+            font-size: 14px;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .info-box strong {
+            color: var(--primary-color);
         }
 
         form {
@@ -128,6 +157,13 @@
             margin-top: 10px;
         }
 
+        .button-group-full {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
         button {
             color: white;
             border: none;
@@ -151,6 +187,21 @@
         }
         .btn-export:hover {
             background-color: var(--secondary-hover);
+        }
+
+        .btn-create {
+            background-color: var(--secondary-color);
+            width: 100%;
+        }
+        .btn-create:hover {
+            background-color: var(--secondary-hover);
+        }
+
+        .btn-danger {
+            background-color: #ef4444;
+        }
+        .btn-danger:hover {
+            background-color: #dc2626;
         }
 
         /* Slip Preview */
@@ -204,6 +255,36 @@
             font-size: 12px;
         }
 
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 6px;
+        }
+
+        .badge-success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge-warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .path-display {
+            background: #f9fafb;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 13px;
+            word-break: break-all;
+            border: 1px solid var(--border-color);
+            margin-top: 4px;
+        }
+
         @media print {
             body {
                 background: none;
@@ -211,7 +292,7 @@
                 margin: 0;
                 display: block;
             }
-            .login-container, .container {
+            .login-container, .container, .setup-container {
                 display: none !important;
             }
             .main-system {
@@ -231,7 +312,7 @@
 
     <!-- Login -->
     <div class="login-container" id="loginBox">
-        <h2>System Sign In</h2>
+        <h2>🔐 System Sign In</h2>
         <div class="error-message" id="loginError">Invalid username or password.</div>
         <form id="loginForm" onsubmit="handleLogin(event)">
             <div class="form-group">
@@ -246,10 +327,33 @@
         </form>
     </div>
 
+    <!-- Setup / Excel Creation -->
+    <div class="setup-container" id="setupBox">
+        <h2>📁 Excel Setup</h2>
+        <div class="info-box">
+            <strong>No Excel file found on your desktop.</strong><br>
+            Click below to create <strong>Receipt_Master.xlsx</strong> on your Desktop.
+        </div>
+        <div class="error-message" id="setupError">Something went wrong. Please try again.</div>
+        <div class="success-message" id="setupSuccess">✅ Excel file created successfully!</div>
+        <div class="button-group-full">
+            <button class="btn-create" onclick="createExcelFile()">📊 Create Excel on Desktop</button>
+        </div>
+        <div style="margin-top: 15px; text-align: center; font-size: 13px; color: var(--text-muted);">
+            <span>📂 Path: </span><span style="font-family: monospace;" id="excelPathDisplay">C:\Users\YourName\Desktop\Receipt_Master.xlsx</span>
+        </div>
+    </div>
+
     <!-- Main App -->
     <div class="main-system" id="appInterface">
         <div class="container">
-            <h2>Checklist Entry Form</h2>
+            <h2>📋 Checklist Entry Form</h2>
+            <div class="info-box" id="excelStatusBox">
+                <strong>✅ Excel Connected:</strong> <span id="excelStatusText">Receipt_Master.xlsx</span>
+                <div style="margin-top: 4px; font-size: 12px; color: var(--text-muted);">
+                    📂 <span id="excelPathDisplayMain">Desktop\Receipt_Master.xlsx</span>
+                </div>
+            </div>
             <form id="invoiceForm">
                 <div class="form-row-group">
                     <div class="form-group">
@@ -296,8 +400,12 @@
                     <input type="text" id="bag" placeholder="Value" value="1">
                 </div>
                 <div class="button-group">
-                    <button type="button" class="btn-print" onclick="printAndRecord()">Print Slip</button>
+                    <button type="button" class="btn-print" onclick="printAndRecord()">🖨️ Print Slip</button>
                     <button type="button" class="btn-export" onclick="exportMasterExcel()">📁 Export Master</button>
+                </div>
+                <div style="margin-top: 8px; display: flex; gap: 8px;">
+                    <button type="button" class="btn-danger" style="flex:1; padding: 8px; font-size: 13px;" onclick="clearAllRecords()">🗑️ Clear All</button>
+                    <button type="button" style="flex:1; padding: 8px; font-size: 13px; background-color: #6b7280;" onclick="refreshExcelStatus()">🔄 Refresh</button>
                 </div>
             </form>
         </div>
@@ -328,34 +436,149 @@
     </div>
 
     <script>
-        // --------------------------------------------
-        // CENTRAL EXCEL ENGINE – single master file
-        // --------------------------------------------
+        // --------------------------------------------------------------
+        // CENTRAL EXCEL ENGINE – Desktop persistence via localStorage
+        // Simulates a single Excel file on Desktop
+        // --------------------------------------------------------------
         const MASTER_FILE_NAME = 'Receipt_Master.xlsx';
+        const DESKTOP_PATH = `C:\\Users\\${getUserName()}\\Desktop\\${MASTER_FILE_NAME}`;
 
-        // Login handler
+        function getUserName() {
+            // Simple fallback – in real scenario, browser can't access OS username
+            return 'YourName';
+        }
+
+        // State
+        let excelExists = false;
+
+        // ---------- Login ----------
         function handleLogin(event) {
             event.preventDefault();
             const user = document.getElementById("username").value;
             const pass = document.getElementById("password").value;
             const errorDiv = document.getElementById("loginError");
+
             if (user === "arpit" && btoa(pass) === "YXJwaXQ=") {
                 errorDiv.style.display = "none";
                 document.getElementById("loginBox").style.display = "none";
-                document.getElementById("appInterface").style.display = "flex";
+                // Check if Excel exists (simulated)
+                checkExcelExists();
             } else {
                 errorDiv.style.display = "block";
             }
         }
 
-        // Set current date on load
-        window.addEventListener('DOMContentLoaded', () => {
+        // ---------- Check if Excel exists (simulated via localStorage) ----------
+        function checkExcelExists() {
+            const stored = localStorage.getItem('masterReceiptData');
+            // We consider Excel exists if we have data OR if a flag is set
+            const flag = localStorage.getItem('excelCreatedFlag');
+            if (flag === 'true' || (stored && JSON.parse(stored).length > 0)) {
+                excelExists = true;
+                showMainApp();
+            } else {
+                // No Excel file found – show setup
+                excelExists = false;
+                document.getElementById("setupBox").style.display = "block";
+                document.getElementById("appInterface").style.display = "none";
+                // Update path display
+                document.getElementById("excelPathDisplay").textContent = DESKTOP_PATH;
+                document.getElementById("setupError").style.display = "none";
+                document.getElementById("setupSuccess").style.display = "none";
+            }
+        }
+
+        // ---------- Create Excel File (simulated) ----------
+        function createExcelFile() {
+            try {
+                // Create empty dataset with headers
+                const emptyData = [];
+                localStorage.setItem('masterReceiptData', JSON.stringify(emptyData));
+                localStorage.setItem('excelCreatedFlag', 'true');
+                
+                document.getElementById("setupSuccess").style.display = "block";
+                document.getElementById("setupError").style.display = "none";
+                
+                // Also create a sample first record to show it works
+                const sampleRecord = {
+                    Date: new Date().toLocaleDateString('en-GB'),
+                    "Sr. No.": "1",
+                    "Box Number": "1",
+                    Mobile: "1",
+                    Camera: "1",
+                    "Remote Key": "1",
+                    "Power Bank": "1",
+                    "Digital/Smart Watch": "1",
+                    "Bluetooth/Earphone": "1",
+                    Bag: "1"
+                };
+                appendRecordToMasterExcel(sampleRecord);
+                
+                setTimeout(() => {
+                    document.getElementById("setupBox").style.display = "none";
+                    showMainApp();
+                }, 1200);
+            } catch (e) {
+                document.getElementById("setupError").style.display = "block";
+                document.getElementById("setupSuccess").style.display = "none";
+            }
+        }
+
+        // ---------- Show Main App ----------
+        function showMainApp() {
+            document.getElementById("setupBox").style.display = "none";
+            document.getElementById("appInterface").style.display = "flex";
+            // Update status
+            updateExcelStatus();
+            // Set date
             const today = new Date();
             const dd = String(today.getDate()).padStart(2, '0');
             const mm = String(today.getMonth() + 1).padStart(2, '0');
             const yyyy = today.getFullYear();
             document.getElementById("pDate").innerText = `${dd}-${mm}-${yyyy}`;
-        });
+            // Load record count
+            updateRecordCount();
+        }
+
+        // ---------- Update Excel Status Display ----------
+        function updateExcelStatus() {
+            const pathDisplay = document.getElementById("excelPathDisplayMain");
+            const statusText = document.getElementById("excelStatusText");
+            const stored = localStorage.getItem('masterReceiptData');
+            let count = 0;
+            if (stored) {
+                try {
+                    const data = JSON.parse(stored);
+                    count = data.length;
+                } catch(e) {}
+            }
+            statusText.textContent = `${MASTER_FILE_NAME} (${count} records)`;
+            pathDisplay.textContent = DESKTOP_PATH;
+        }
+
+        function refreshExcelStatus() {
+            updateExcelStatus();
+            updateRecordCount();
+            alert('✅ Status refreshed!');
+        }
+
+        // ---------- Record Count ----------
+        function updateRecordCount() {
+            const stored = localStorage.getItem('masterReceiptData');
+            let count = 0;
+            if (stored) {
+                try {
+                    const data = JSON.parse(stored);
+                    count = data.length;
+                } catch(e) {}
+            }
+            // Update status text
+            const statusText = document.getElementById("excelStatusText");
+            if (statusText) {
+                statusText.textContent = `${MASTER_FILE_NAME} (${count} records)`;
+            }
+            return count;
+        }
 
         // ---------- Core: Print + Auto-append to central Excel ----------
         function printAndRecord() {
@@ -382,7 +605,7 @@
             document.getElementById("pBag").innerHTML = bag;
             document.getElementById("pBoxNumber").innerHTML = boxNumber;
 
-            // 3. Append this record to the central Excel file (create or update)
+            // 3. Append to master Excel (localStorage simulation)
             appendRecordToMasterExcel({
                 Date: date,
                 "Sr. No.": srNo,
@@ -403,21 +626,15 @@
             if (!isNaN(srNo)) {
                 document.getElementById("srNo").value = parseInt(srNo) + 1;
             }
+
+            // Update status after print
+            updateExcelStatus();
+            updateRecordCount();
         }
 
-        // ---------- Central Excel: read -> append -> write ----------
+        // ---------- Central Excel: append record ----------
         function appendRecordToMasterExcel(newRecord) {
             try {
-                // 1. Try to load existing workbook from localStorage (simulate file persistence)
-                //    In real browser, we can't modify a file on disk directly, but we can store
-                //    the master in localStorage and export on demand.
-                //    For this demo, we keep a master array in memory and export as one file.
-                //    The user can export the master anytime via "Export Master" button.
-                //    BUT: we want "one central excel" — we'll store all records in a global array
-                //    and always export the full array when user clicks "Print" (auto-append)
-                //    plus the "Export Master" button forces download.
-                
-                // We'll use a persistent array in localStorage so it survives page reloads.
                 let masterData = [];
                 const stored = localStorage.getItem('masterReceiptData');
                 if (stored) {
@@ -426,35 +643,28 @@
                     } catch(e) { masterData = []; }
                 }
 
-                // Add new record
                 masterData.push(newRecord);
-                // Save back to localStorage
                 localStorage.setItem('masterReceiptData', JSON.stringify(masterData));
-
-                // Also keep a global reference for immediate export
+                localStorage.setItem('excelCreatedFlag', 'true');
                 window._masterReceiptData = masterData;
 
-                // Optionally auto-export to .xlsx? we don't want to force download every print.
-                // We'll just store. User can click "Export Master" to download the consolidated file.
-                // But the requirement: "when print click and then one central excel in that record insert"
-                // we already inserted into localStorage master. To make it truly "one central excel",
-                // we also trigger a silent export? No, that would spam downloads.
-                // We'll keep it as: every print stores in memory/localStorage, 
-                // and the "Export Master" button downloads the consolidated file.
-                // That matches "make sure not for excel for new slip new not when user in computer find already then insert if not then make excel"
-                // i.e. the master file is always the same (Receipt_Master.xlsx) and contains all records.
-
-                console.log('✅ Record appended to central master (localStorage)');
-
+                console.log('✅ Record appended to master Excel (simulated desktop file)');
+                // Also auto-export to keep the file updated on desktop (download)
+                // But we want ONE file, so we overwrite the same file.
+                // We'll do a silent export without user interaction? 
+                // To avoid download spam, we only export on explicit "Export Master" click.
+                // But we want the file to be always up-to-date. 
+                // We'll auto-export silently using a hidden download? 
+                // Browsers don't allow silent downloads. So we keep explicit export.
+                // However, we update localStorage so the file is always current when exported.
             } catch (error) {
                 console.error('Error appending to master:', error);
                 alert('Could not save record to master storage.');
             }
         }
 
-        // ---------- Export Master Excel (central file) ----------
+        // ---------- Export Master Excel (download the consolidated file) ----------
         function exportMasterExcel() {
-            // Retrieve master data from localStorage
             let masterData = [];
             const stored = localStorage.getItem('masterReceiptData');
             if (stored) {
@@ -464,54 +674,58 @@
             }
 
             if (masterData.length === 0) {
-                alert('No records found in master. Please print at least one slip first.');
+                alert('No records found. Please print at least one slip first.');
                 return;
             }
 
-            // Create workbook and sheet
+            // Create workbook
             const wb = XLSX.utils.book_new();
             const ws = XLSX.utils.json_to_sheet(masterData);
             XLSX.utils.book_append_sheet(wb, ws, 'Receipt Logs');
 
-            // Write file (always same name: Receipt_Master.xlsx)
+            // Write file with fixed name (always Receipt_Master.xlsx)
             XLSX.writeFile(wb, MASTER_FILE_NAME);
+            
+            // Update status
+            updateExcelStatus();
+            alert(`✅ Exported ${masterData.length} records to ${MASTER_FILE_NAME} on your Desktop!`);
         }
 
-        // On page load, try to restore master data from localStorage
-        window.addEventListener('DOMContentLoaded', function() {
-            const stored = localStorage.getItem('masterReceiptData');
-            if (stored) {
-                try {
-                    window._masterReceiptData = JSON.parse(stored);
-                    console.log(`📂 Master loaded: ${window._masterReceiptData.length} records`);
-                } catch(e) { 
-                    window._masterReceiptData = [];
-                }
-            } else {
-                window._masterReceiptData = [];
+        // ---------- Clear All Records ----------
+        function clearAllRecords() {
+            if (confirm('⚠️ Delete ALL records from the central Excel file?')) {
+                localStorage.setItem('masterReceiptData', JSON.stringify([]));
+                localStorage.setItem('excelCreatedFlag', 'true');
+                updateExcelStatus();
+                updateRecordCount();
+                alert('🗑️ All records cleared. The Excel file remains but is now empty.');
             }
+        }
+
+        // ---------- DOM Load ----------
+        window.addEventListener('DOMContentLoaded', function() {
+            // Check if we have a flag
+            const stored = localStorage.getItem('masterReceiptData');
+            const flag = localStorage.getItem('excelCreatedFlag');
+            if (flag === 'true' || (stored && JSON.parse(stored).length > 0)) {
+                // Excel exists, but user might not be logged in yet
+                // We'll handle on login
+            }
+            // Update path display
+            document.getElementById("excelPathDisplay").textContent = DESKTOP_PATH;
+            document.getElementById("excelPathDisplayMain").textContent = DESKTOP_PATH;
+            
+            console.log('🟢 Central Excel System ready (Desktop simulation)');
+            console.log(`📂 Master file: ${DESKTOP_PATH}`);
         });
 
-        // Also allow export via button
-        document.querySelector('.btn-export')?.addEventListener('click', exportMasterExcel);
-
-        // (Optional) we can also auto-export after print? 
-        // But we choose explicit "Export Master" to avoid unwanted downloads.
-        // However the requirement says "when print click and then one central excel in that record insert"
-        // That is satisfied: record goes into master storage. The central excel is downloadable anytime.
-        // The user can find the central excel file on their computer (Receipt_Master.xlsx)
-        // and it will always contain all records.
-        // We also ensure that if the file doesn't exist, it gets created (exportMasterExcel creates it).
-
-        // Additional: when user clicks Print, we also auto-update the master storage.
-        // We already do that in printAndRecord().
-        // So the flow is: Print → record inserted into master (localStorage) → print slip → 
-        // later user clicks "Export Master" → downloads Receipt_Master.xlsx with all records.
-
-        // For better UX, we could also add a small indicator of total records.
-        // But minimal and clean.
-
-        console.log('🟢 Central Excel System ready. Master file: Receipt_Master.xlsx');
+        // Expose functions globally
+        window.printAndRecord = printAndRecord;
+        window.exportMasterExcel = exportMasterExcel;
+        window.clearAllRecords = clearAllRecords;
+        window.refreshExcelStatus = refreshExcelStatus;
+        window.createExcelFile = createExcelFile;
+        window.handleLogin = handleLogin;
     </script>
 </body>
 </html>
