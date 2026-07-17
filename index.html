@@ -114,33 +114,6 @@
             color: var(--primary-color);
         }
 
-        .warning-box {
-            background: #fef3c7;
-            border-left: 4px solid #f59e0b;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 18px;
-            font-size: 13px;
-        }
-
-        .warning-box strong {
-            color: #92400e;
-        }
-
-        .success-box {
-            background: #d1fae5;
-            border-left: 4px solid #10b981;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 18px;
-            font-size: 13px;
-            display: none;
-        }
-
-        .success-box strong {
-            color: #065f46;
-        }
-
         .badge {
             background: #d1fae5;
             color: #065f46;
@@ -542,27 +515,6 @@
         <div class="container">
             <h2>📋 Checklist Entry Form</h2>
 
-            <!-- Important Notice -->
-            <div class="warning-box" id="warningBox">
-                <strong>⚠️ Important:</strong><br>
-                Excel files are <strong>downloaded</strong> (not saved directly) due to browser security.<br>
-                <span style="font-weight: 600; color: #dc2626;">Save the downloaded file to: C:\bill\Receipt_Master.xlsx</span>
-                <br><br>
-                <button class="quick-save-btn" onclick="downloadAndGuide()">
-                    💾 Click to Download &amp; Save Guide
-                </button>
-            </div>
-
-            <!-- Success Message -->
-            <div class="success-box" id="successBox">
-                <strong>✅ File Downloaded!</strong><br>
-                Please save it to: <span style="font-family: monospace; background: #f3f4f6; padding: 2px 6px; border-radius: 4px;">C:\bill\Receipt_Master.xlsx</span>
-                <br><br>
-                <button class="quick-save-btn" style="background: #10b981;" onclick="downloadAndGuide()">
-                    📥 Download Again
-                </button>
-            </div>
-
             <div class="info-box" id="excelStatusBox">
                 <strong>📊 Excel Status:</strong> <span id="excelStatusText">Receipt_Master.xlsx</span>
                 <span class="badge">MANUAL DOWNLOAD</span>
@@ -813,15 +765,6 @@
 
             try {
                 XLSX.writeFile(wb, MASTER_FILE_NAME);
-
-                document.getElementById("successBox").style.display = "block";
-                document.getElementById("warningBox").style.display = "none";
-
-                setTimeout(() => {
-                    document.getElementById("successBox").style.display = "none";
-                    document.getElementById("warningBox").style.display = "block";
-                }, 8000);
-
                 console.log(`✅ Downloaded ${data.length} records as ${MASTER_FILE_NAME}`);
             } catch (e) {
                 console.error('Download error:', e);
@@ -848,18 +791,6 @@
                 return;
             }
             downloadExcelFile(data);
-
-            alert(
-                '📥 File Downloaded!\n\n' +
-                '📂 Please save the file to:\n' +
-                '   C:\\bill\\Receipt_Master.xlsx\n\n' +
-                '💡 Steps:\n' +
-                '1. In the "Save As" dialog, navigate to C:\\bill\n' +
-                '2. If "bill" folder doesn\'t exist, create it\n' +
-                '3. Save the file as "Receipt_Master.xlsx"\n' +
-                '4. Click Save\n\n' +
-                '✅ This will overwrite the existing file with ALL records.'
-            );
         }
 
         // ---------- Print + Append ----------
@@ -910,11 +841,6 @@
 
             updateExcelStatus();
             updateRecordCount();
-
-            // Show message to download
-            setTimeout(() => {
-                alert('✅ Record added!\n\nClick "Download Excel" to save the updated file to C:\\bill\\Receipt_Master.xlsx');
-            }, 500);
         }
 
         // ---------- Append Record ----------
