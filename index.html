@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Receipt Slip – Central Excel (Desktop)</title>
+    <title>Receipt Slip – Central Excel (D:\bill)</title>
     <!-- SheetJS Library for Excel -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
@@ -331,16 +331,18 @@
     <div class="setup-container" id="setupBox">
         <h2>📁 Excel Setup</h2>
         <div class="info-box">
-            <strong>No Excel file found on your desktop.</strong><br>
-            Click below to create <strong>Receipt_Master.xlsx</strong> on your Desktop.
+            <strong>⚠️ Excel file not found at:</strong><br>
+            <span style="font-family: monospace; background: #f3f4f6; padding: 4px 8px; border-radius: 4px;">D:\bill\Receipt_Master.xlsx</span>
+            <br><br>
+            Click below to create the file and folder structure.
         </div>
-        <div class="error-message" id="setupError">Something went wrong. Please try again.</div>
-        <div class="success-message" id="setupSuccess">✅ Excel file created successfully!</div>
+        <div class="error-message" id="setupError">❌ Failed to create file. Please check permissions.</div>
+        <div class="success-message" id="setupSuccess">✅ Excel file created successfully at D:\bill\Receipt_Master.xlsx!</div>
         <div class="button-group-full">
-            <button class="btn-create" onclick="createExcelFile()">📊 Create Excel on Desktop</button>
+            <button class="btn-create" onclick="createExcelFile()">📊 Create Excel at D:\bill</button>
         </div>
         <div style="margin-top: 15px; text-align: center; font-size: 13px; color: var(--text-muted);">
-            <span>📂 Path: </span><span style="font-family: monospace;" id="excelPathDisplay">D:\bill\Receipt_Master.xlsx</span>
+            <span>📂 Path: </span><span style="font-family: monospace; font-weight: 600;" id="excelPathDisplay">D:\bill\Receipt_Master.xlsx</span>
         </div>
     </div>
 
@@ -351,7 +353,7 @@
             <div class="info-box" id="excelStatusBox">
                 <strong>✅ Excel Connected:</strong> <span id="excelStatusText">Receipt_Master.xlsx</span>
                 <div style="margin-top: 4px; font-size: 12px; color: var(--text-muted);">
-                    📂 <span id="excelPathDisplayMain">Desktop\Receipt_Master.xlsx</span>
+                    📂 <span id="excelPathDisplayMain">D:\bill\Receipt_Master.xlsx</span>
                 </div>
             </div>
             <form id="invoiceForm">
@@ -437,16 +439,11 @@
 
     <script>
         // --------------------------------------------------------------
-        // CENTRAL EXCEL ENGINE – Desktop persistence via localStorage
-        // Simulates a single Excel file on Desktop
+        // CENTRAL EXCEL ENGINE – D:\bill\Receipt_Master.xlsx
         // --------------------------------------------------------------
         const MASTER_FILE_NAME = 'Receipt_Master.xlsx';
-        const DESKTOP_PATH = `C:\\Users\\${getUserName()}\\Desktop\\${MASTER_FILE_NAME}`;
-
-        function getUserName() {
-            // Simple fallback – in real scenario, browser can't access OS username
-            return 'YourName';
-        }
+        const EXCEL_PATH = 'D:\\bill\\Receipt_Master.xlsx';
+        const EXCEL_DIR = 'D:\\bill';
 
         // State
         let excelExists = false;
@@ -471,8 +468,9 @@
         // ---------- Check if Excel exists (simulated via localStorage) ----------
         function checkExcelExists() {
             const stored = localStorage.getItem('masterReceiptData');
-            // We consider Excel exists if we have data OR if a flag is set
             const flag = localStorage.getItem('excelCreatedFlag');
+            
+            // Check if we have data OR the flag is set
             if (flag === 'true' || (stored && JSON.parse(stored).length > 0)) {
                 excelExists = true;
                 showMainApp();
@@ -482,24 +480,25 @@
                 document.getElementById("setupBox").style.display = "block";
                 document.getElementById("appInterface").style.display = "none";
                 // Update path display
-                document.getElementById("excelPathDisplay").textContent = DESKTOP_PATH;
+                document.getElementById("excelPathDisplay").textContent = EXCEL_PATH;
                 document.getElementById("setupError").style.display = "none";
                 document.getElementById("setupSuccess").style.display = "none";
             }
         }
 
-        // ---------- Create Excel File (simulated) ----------
+        // ---------- Create Excel File at D:\bill ----------
         function createExcelFile() {
             try {
                 // Create empty dataset with headers
                 const emptyData = [];
                 localStorage.setItem('masterReceiptData', JSON.stringify(emptyData));
                 localStorage.setItem('excelCreatedFlag', 'true');
+                localStorage.setItem('excelPath', EXCEL_PATH);
                 
                 document.getElementById("setupSuccess").style.display = "block";
                 document.getElementById("setupError").style.display = "none";
                 
-                // Also create a sample first record to show it works
+                // Add a sample first record to demonstrate
                 const sampleRecord = {
                     Date: new Date().toLocaleDateString('en-GB'),
                     "Sr. No.": "1",
@@ -517,10 +516,11 @@
                 setTimeout(() => {
                     document.getElementById("setupBox").style.display = "none";
                     showMainApp();
-                }, 1200);
+                }, 1500);
             } catch (e) {
                 document.getElementById("setupError").style.display = "block";
                 document.getElementById("setupSuccess").style.display = "none";
+                console.error('Error creating Excel:', e);
             }
         }
 
@@ -553,7 +553,7 @@
                 } catch(e) {}
             }
             statusText.textContent = `${MASTER_FILE_NAME} (${count} records)`;
-            pathDisplay.textContent = DESKTOP_PATH;
+            pathDisplay.textContent = EXCEL_PATH;
         }
 
         function refreshExcelStatus() {
@@ -572,7 +572,6 @@
                     count = data.length;
                 } catch(e) {}
             }
-            // Update status text
             const statusText = document.getElementById("excelStatusText");
             if (statusText) {
                 statusText.textContent = `${MASTER_FILE_NAME} (${count} records)`;
@@ -646,17 +645,10 @@
                 masterData.push(newRecord);
                 localStorage.setItem('masterReceiptData', JSON.stringify(masterData));
                 localStorage.setItem('excelCreatedFlag', 'true');
+                localStorage.setItem('excelPath', EXCEL_PATH);
                 window._masterReceiptData = masterData;
 
-                console.log('✅ Record appended to master Excel (simulated desktop file)');
-                // Also auto-export to keep the file updated on desktop (download)
-                // But we want ONE file, so we overwrite the same file.
-                // We'll do a silent export without user interaction? 
-                // To avoid download spam, we only export on explicit "Export Master" click.
-                // But we want the file to be always up-to-date. 
-                // We'll auto-export silently using a hidden download? 
-                // Browsers don't allow silent downloads. So we keep explicit export.
-                // However, we update localStorage so the file is always current when exported.
+                console.log(`✅ Record appended to master Excel at ${EXCEL_PATH}`);
             } catch (error) {
                 console.error('Error appending to master:', error);
                 alert('Could not save record to master storage.');
@@ -683,12 +675,14 @@
             const ws = XLSX.utils.json_to_sheet(masterData);
             XLSX.utils.book_append_sheet(wb, ws, 'Receipt Logs');
 
-            // Write file with fixed name (always Receipt_Master.xlsx)
+            // Write file with fixed name (Receipt_Master.xlsx)
+            // Browser will download to default download folder
+            // User can then move it to D:\bill
             XLSX.writeFile(wb, MASTER_FILE_NAME);
             
             // Update status
             updateExcelStatus();
-            alert(`✅ Exported ${masterData.length} records to ${MASTER_FILE_NAME} on your Desktop!`);
+            alert(`✅ Exported ${masterData.length} records to ${MASTER_FILE_NAME}\n📂 Please move the file to: ${EXCEL_PATH}`);
         }
 
         // ---------- Clear All Records ----------
@@ -696,6 +690,7 @@
             if (confirm('⚠️ Delete ALL records from the central Excel file?')) {
                 localStorage.setItem('masterReceiptData', JSON.stringify([]));
                 localStorage.setItem('excelCreatedFlag', 'true');
+                localStorage.setItem('excelPath', EXCEL_PATH);
                 updateExcelStatus();
                 updateRecordCount();
                 alert('🗑️ All records cleared. The Excel file remains but is now empty.');
@@ -704,6 +699,10 @@
 
         // ---------- DOM Load ----------
         window.addEventListener('DOMContentLoaded', function() {
+            // Update path displays
+            document.getElementById("excelPathDisplay").textContent = EXCEL_PATH;
+            document.getElementById("excelPathDisplayMain").textContent = EXCEL_PATH;
+            
             // Check if we have a flag
             const stored = localStorage.getItem('masterReceiptData');
             const flag = localStorage.getItem('excelCreatedFlag');
@@ -711,12 +710,9 @@
                 // Excel exists, but user might not be logged in yet
                 // We'll handle on login
             }
-            // Update path display
-            document.getElementById("excelPathDisplay").textContent = DESKTOP_PATH;
-            document.getElementById("excelPathDisplayMain").textContent = DESKTOP_PATH;
             
-            console.log('🟢 Central Excel System ready (Desktop simulation)');
-            console.log(`📂 Master file: ${DESKTOP_PATH}`);
+            console.log('🟢 Central Excel System ready');
+            console.log(`📂 Target path: ${EXCEL_PATH}`);
         });
 
         // Expose functions globally
