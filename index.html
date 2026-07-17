@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Receipt Slip – Auto Excel (C:\bill)</title>
+    <title>Receipt Slip – Manual Excel (C:\bill)</title>
     <!-- SheetJS Library for Excel -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
@@ -141,7 +141,7 @@
             color: #065f46;
         }
 
-        .auto-badge {
+        .badge {
             background: #d1fae5;
             color: #065f46;
             padding: 2px 10px;
@@ -232,14 +232,6 @@
             background-color: var(--secondary-hover);
         }
 
-        .btn-create {
-            background-color: var(--secondary-color);
-            width: 100%;
-        }
-        .btn-create:hover {
-            background-color: var(--secondary-hover);
-        }
-
         .btn-danger {
             background-color: #ef4444;
         }
@@ -247,11 +239,89 @@
             background-color: #dc2626;
         }
 
-        .btn-warning {
-            background-color: #f59e0b;
+        .quick-save-btn {
+            background: #8b5cf6;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            width: 100%;
+            margin-top: 6px;
         }
-        .btn-warning:hover {
-            background-color: #d97706;
+
+        .quick-save-btn:hover {
+            background: #7c3aed;
+        }
+
+        /* --- MODAL STYLES --- */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-box {
+            background: white;
+            padding: 35px 30px;
+            border-radius: 12px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-box h3 {
+            margin-top: 0;
+            color: var(--error-color);
+            font-size: 20px;
+            text-align: center;
+        }
+
+        .modal-box .modal-error {
+            color: var(--error-color);
+            font-size: 13px;
+            text-align: center;
+            display: none;
+            margin-bottom: 12px;
+            font-weight: 500;
+        }
+
+        .modal-box .form-group {
+            margin-bottom: 14px;
+        }
+
+        .modal-box .button-group-modal {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .modal-box .btn-cancel {
+            background: #6b7280;
+        }
+        .modal-box .btn-cancel:hover {
+            background: #4b5563;
+        }
+
+        .modal-box .btn-confirm {
+            background: var(--error-color);
+        }
+        .modal-box .btn-confirm:hover {
+            background: #dc2626;
         }
 
         /* --- SLIP PREVIEW (Screen) --- */
@@ -324,25 +394,6 @@
             padding: 0 2px;
         }
 
-        .status-badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            margin-top: 6px;
-        }
-
-        .badge-success {
-            background: #d1fae5;
-            color: #065f46;
-        }
-
-        .badge-warning {
-            background: #fef3c7;
-            color: #92400e;
-        }
-
         .path-display {
             background: #f9fafb;
             padding: 8px 12px;
@@ -352,24 +403,6 @@
             word-break: break-all;
             border: 1px solid var(--border-color);
             margin-top: 4px;
-        }
-
-        /* Quick Save Button */
-        .quick-save-btn {
-            background: #8b5cf6;
-            color: white;
-            border: none;
-            padding: 10px 16px;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.2s;
-            width: 100%;
-            margin-top: 6px;
-        }
-
-        .quick-save-btn:hover {
-            background: #7c3aed;
         }
 
         /* --- PRINT STYLES --- */
@@ -388,7 +421,8 @@
             .main-system>.container,
             .main-system>form,
             .main-system>.container,
-            .main-system>.info-box {
+            .main-system>.info-box,
+            .modal-overlay {
                 display: none !important;
             }
 
@@ -503,25 +537,6 @@
         </form>
     </div>
 
-    <!-- Setup / Excel Creation -->
-    <div class="setup-container" id="setupBox">
-        <h2>📁 Auto Excel Setup</h2>
-        <div class="info-box">
-            <strong>⚡ First-time setup:</strong><br>
-            <span style="font-family: monospace; background: #f3f4f6; padding: 4px 8px; border-radius: 4px;">C:\bill\Receipt_Master.xlsx</span>
-            <br><br>
-            Creating Excel file automatically...
-        </div>
-        <div class="error-message" id="setupError">❌ Failed to create file. Please check permissions.</div>
-        <div class="success-message" id="setupSuccess">✅ Excel file created successfully at C:\bill\Receipt_Master.xlsx!</div>
-        <div class="button-group-full">
-            <button class="btn-create" onclick="createExcelFile()">📊 Create Excel at C:\bill</button>
-        </div>
-        <div style="margin-top: 15px; text-align: center; font-size: 13px; color: var(--text-muted);">
-            <span>📂 Path: </span><span style="font-family: monospace; font-weight: 600;" id="excelPathDisplay">C:\bill\Receipt_Master.xlsx</span>
-        </div>
-    </div>
-
     <!-- Main App -->
     <div class="main-system" id="appInterface">
         <div class="container">
@@ -549,11 +564,10 @@
             </div>
 
             <div class="info-box" id="excelStatusBox">
-                <strong>✅ Excel Connected:</strong> <span id="excelStatusText">Receipt_Master.xlsx</span>
-                <span class="auto-badge">AUTO-SYNC</span>
+                <strong>📊 Excel Status:</strong> <span id="excelStatusText">Receipt_Master.xlsx</span>
+                <span class="badge">MANUAL DOWNLOAD</span>
                 <div style="margin-top: 4px; font-size: 12px; color: var(--text-muted);">
-                    📂 <span id="excelPathDisplayMain">C:\bill\Receipt_Master.xlsx</span>
-                    <span style="margin-left: 10px; background: #fef3c7; padding: 2px 8px; border-radius: 10px; font-size: 11px;">Auto-creates on first login</span>
+                    📂 Save to: <span id="excelPathDisplayMain">C:\bill\Receipt_Master.xlsx</span>
                 </div>
                 <div style="margin-top: 6px; font-size: 13px; font-weight: 600; color: var(--primary-color);">
                     📊 Total Records: <span id="totalRecordsDisplay">0</span>
@@ -610,7 +624,7 @@
                     <button type="button" class="btn-export" onclick="downloadAndGuide()">📥 Download Excel</button>
                 </div>
                 <div style="margin-top: 8px; display: flex; gap: 8px;">
-                    <button type="button" class="btn-danger" style="flex:1; padding: 8px; font-size: 13px;" onclick="clearAllRecords()">🗑️ Clear All</button>
+                    <button type="button" class="btn-danger" style="flex:1; padding: 8px; font-size: 13px;" onclick="openClearModal()">🗑️ Clear All</button>
                     <button type="button" style="flex:1; padding: 8px; font-size: 13px; background-color: #6b7280;" onclick="refreshExcelStatus()">🔄 Refresh</button>
                 </div>
             </form>
@@ -673,9 +687,31 @@
         </div>
     </div>
 
+    <!-- Clear All Modal -->
+    <div class="modal-overlay" id="clearModal">
+        <div class="modal-box">
+            <h3>🔒 Confirm Clear All</h3>
+            <p style="text-align: center; color: #6b7280; font-size: 14px;">Enter your credentials to delete all records.</p>
+            <div class="modal-error" id="modalError">Invalid username or password.</div>
+            <div class="form-group">
+                <label for="modalUsername">Username</label>
+                <input type="text" id="modalUsername" placeholder="Enter username" required>
+            </div>
+            <div class="form-group">
+                <label for="modalPassword">Password</label>
+                <input type="password" id="modalPassword" placeholder="Enter password" required>
+            </div>
+            <div class="button-group-modal">
+                <button class="btn-cancel" onclick="closeClearModal()">Cancel</button>
+                <button class="btn-confirm" onclick="confirmClearAll()">Delete All</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // --------------------------------------------------------------
-        // AUTO EXCEL ENGINE – C:\bill\Receipt_Master.xlsx
+        // MANUAL EXCEL ENGINE – C:\bill\Receipt_Master.xlsx
+        // No auto-sync, manual download only
         // --------------------------------------------------------------
         const MASTER_FILE_NAME = 'Receipt_Master.xlsx';
         const EXCEL_PATH = 'C:\\bill\\Receipt_Master.xlsx';
@@ -690,35 +726,19 @@
             if (user === "arpit" && btoa(pass) === "YXJwaXQ=") {
                 errorDiv.style.display = "none";
                 document.getElementById("loginBox").style.display = "none";
-                autoSetupExcel();
+                document.getElementById("appInterface").style.display = "flex";
+                initializeApp();
             } else {
                 errorDiv.style.display = "block";
             }
         }
 
-        // ---------- Auto Setup ----------
-        function autoSetupExcel() {
+        // ---------- Initialize App ----------
+        function initializeApp() {
+            // Check if we have data, if not create sample data
             const stored = localStorage.getItem('masterReceiptData');
-            const flag = localStorage.getItem('excelCreatedFlag');
-
-            if (flag === 'true' || (stored && JSON.parse(stored).length > 0)) {
-                showMainApp();
-                return;
-            }
-
-            document.getElementById("setupBox").style.display = "block";
-            document.getElementById("appInterface").style.display = "none";
-            document.getElementById("excelPathDisplay").textContent = EXCEL_PATH;
-
-            setTimeout(() => {
-                createExcelFile();
-            }, 1000);
-        }
-
-        // ---------- Create Excel File ----------
-        function createExcelFile() {
-            try {
-                const initialData = [{
+            if (!stored || JSON.parse(stored).length === 0) {
+                const sampleData = [{
                     Date: new Date().toLocaleDateString('en-GB'),
                     "Sr. No.": "1",
                     "Box Number": "1",
@@ -730,42 +750,17 @@
                     "Bluetooth/Earphone": "1",
                     Bag: "1"
                 }];
-
-                localStorage.setItem('masterReceiptData', JSON.stringify(initialData));
+                localStorage.setItem('masterReceiptData', JSON.stringify(sampleData));
                 localStorage.setItem('excelCreatedFlag', 'true');
-                localStorage.setItem('excelPath', EXCEL_PATH);
-
-                document.getElementById("setupSuccess").style.display = "block";
-                document.getElementById("setupError").style.display = "none";
-
-                setTimeout(() => {
-                    downloadExcelFile(initialData);
-                }, 500);
-
-                setTimeout(() => {
-                    document.getElementById("setupBox").style.display = "none";
-                    showMainApp();
-                }, 2000);
-            } catch (e) {
-                document.getElementById("setupError").style.display = "block";
-                document.getElementById("setupSuccess").style.display = "none";
-                setTimeout(() => {
-                    document.getElementById("setupBox").style.display = "none";
-                    showMainApp();
-                }, 3000);
             }
-        }
 
-        // ---------- Show Main App ----------
-        function showMainApp() {
-            document.getElementById("setupBox").style.display = "none";
-            document.getElementById("appInterface").style.display = "flex";
-            updateExcelStatus();
             const today = new Date();
             const dd = String(today.getDate()).padStart(2, '0');
             const mm = String(today.getMonth() + 1).padStart(2, '0');
             const yyyy = today.getFullYear();
             document.getElementById("pDate").innerText = `${dd}-${mm}-${yyyy}`;
+
+            updateExcelStatus();
             updateRecordCount();
         }
 
@@ -781,7 +776,7 @@
                     count = data.length;
                 } catch (e) {}
             }
-            statusText.textContent = `${MASTER_FILE_NAME} (${count} records)`;
+            statusText.textContent = `${MASTER_FILE_NAME}`;
             pathDisplay.textContent = EXCEL_PATH;
             document.getElementById("totalRecordsDisplay").textContent = count;
         }
@@ -807,28 +802,27 @@
 
         // ---------- Download Excel File ----------
         function downloadExcelFile(data) {
+            if (data.length === 0) {
+                alert('No records to export!');
+                return;
+            }
+
             const wb = XLSX.utils.book_new();
             const ws = XLSX.utils.json_to_sheet(data);
             XLSX.utils.book_append_sheet(wb, ws, 'Receipt Logs');
 
-            // Try to use the suggested filename with path
             try {
-                // This attempts to set the download filename
-                // Note: Browser will still ask where to save
                 XLSX.writeFile(wb, MASTER_FILE_NAME);
 
-                // Show success message with path
                 document.getElementById("successBox").style.display = "block";
                 document.getElementById("warningBox").style.display = "none";
 
-                // Auto-hide success after 8 seconds
                 setTimeout(() => {
                     document.getElementById("successBox").style.display = "none";
                     document.getElementById("warningBox").style.display = "block";
                 }, 8000);
 
                 console.log(`✅ Downloaded ${data.length} records as ${MASTER_FILE_NAME}`);
-                console.log(`💾 Please save to: ${EXCEL_PATH}`);
             } catch (e) {
                 console.error('Download error:', e);
                 alert('Error downloading file. Please try again.');
@@ -855,7 +849,6 @@
             }
             downloadExcelFile(data);
 
-            // Show detailed guide
             alert(
                 '📥 File Downloaded!\n\n' +
                 '📂 Please save the file to:\n' +
@@ -869,7 +862,7 @@
             );
         }
 
-        // ---------- Print + Auto-Download ----------
+        // ---------- Print + Append ----------
         function printAndRecord() {
             const date = document.getElementById("pDate").innerText;
             const srNo = document.getElementById("srNo").value || "-";
@@ -918,13 +911,10 @@
             updateExcelStatus();
             updateRecordCount();
 
-            // Auto-download after print with a small delay
+            // Show message to download
             setTimeout(() => {
-                const data = getAllData();
-                if (data.length > 0) {
-                    downloadExcelFile(data);
-                }
-            }, 800);
+                alert('✅ Record added!\n\nClick "Download Excel" to save the updated file to C:\\bill\\Receipt_Master.xlsx');
+            }, 500);
         }
 
         // ---------- Append Record ----------
@@ -941,7 +931,6 @@
                 masterData.push(newRecord);
                 localStorage.setItem('masterReceiptData', JSON.stringify(masterData));
                 localStorage.setItem('excelCreatedFlag', 'true');
-                localStorage.setItem('excelPath', EXCEL_PATH);
                 window._masterReceiptData = masterData;
 
                 console.log(`✅ Record appended (${masterData.length} total records)`);
@@ -950,40 +939,83 @@
             }
         }
 
-        // ---------- Clear All Records ----------
-        function clearAllRecords() {
-            if (confirm('⚠️ Delete ALL records from the central Excel file?')) {
+        // ---------- Clear All Modal ----------
+        function openClearModal() {
+            document.getElementById("clearModal").classList.add("active");
+            document.getElementById("modalUsername").value = "";
+            document.getElementById("modalPassword").value = "";
+            document.getElementById("modalError").style.display = "none";
+        }
+
+        function closeClearModal() {
+            document.getElementById("clearModal").classList.remove("active");
+        }
+
+        function confirmClearAll() {
+            const user = document.getElementById("modalUsername").value;
+            const pass = document.getElementById("modalPassword").value;
+            const errorDiv = document.getElementById("modalError");
+
+            if (user === "arpit" && btoa(pass) === "YXJwaXQ=") {
+                errorDiv.style.display = "none";
+                // Perform clear
                 localStorage.setItem('masterReceiptData', JSON.stringify([]));
                 localStorage.setItem('excelCreatedFlag', 'true');
-                localStorage.setItem('excelPath', EXCEL_PATH);
 
                 // Download empty file
-                downloadExcelFile([]);
+                const wb = XLSX.utils.book_new();
+                const ws = XLSX.utils.json_to_sheet([]);
+                XLSX.utils.book_append_sheet(wb, ws, 'Receipt Logs');
+                XLSX.writeFile(wb, MASTER_FILE_NAME);
 
                 updateExcelStatus();
                 updateRecordCount();
+                closeClearModal();
                 alert('🗑️ All records cleared. Empty Excel file downloaded.');
+            } else {
+                errorDiv.style.display = "block";
             }
         }
 
+        // Close modal on overlay click
+        document.getElementById("clearModal").addEventListener("click", function(e) {
+            if (e.target === this) {
+                closeClearModal();
+            }
+        });
+
+        // Enter key support in modal
+        document.getElementById("modalPassword").addEventListener("keypress", function(e) {
+            if (e.key === "Enter") {
+                confirmClearAll();
+            }
+        });
+
+        document.getElementById("modalUsername").addEventListener("keypress", function(e) {
+            if (e.key === "Enter") {
+                document.getElementById("modalPassword").focus();
+            }
+        });
+
         // ---------- DOM Load ----------
         window.addEventListener('DOMContentLoaded', function() {
-            document.getElementById("excelPathDisplay").textContent = EXCEL_PATH;
             document.getElementById("excelPathDisplayMain").textContent = EXCEL_PATH;
-
-            console.log('🟢 Auto Excel System ready');
+            console.log('🟢 Manual Excel System ready');
             console.log(`📂 File: ${MASTER_FILE_NAME}`);
             console.log(`💾 Save to: ${EXCEL_PATH}`);
             console.log('📊 All records stored in localStorage');
+            console.log('🔒 Clear All requires password verification');
         });
 
         // Expose functions globally
         window.printAndRecord = printAndRecord;
         window.downloadAndGuide = downloadAndGuide;
-        window.clearAllRecords = clearAllRecords;
+        window.openClearModal = openClearModal;
+        window.closeClearModal = closeClearModal;
+        window.confirmClearAll = confirmClearAll;
         window.refreshExcelStatus = refreshExcelStatus;
-        window.createExcelFile = createExcelFile;
         window.handleLogin = handleLogin;
+        window.initializeApp = initializeApp;
     </script>
 </body>
 </html>
