@@ -884,16 +884,14 @@
 
             if (user === "arpit" && btoa(pass) === "YXJwaXQ=") {
                 errorDiv.style.display = "none";
-                // Perform clear
+                // Perform clear - only remove data, no download
                 localStorage.setItem('masterReceiptData', JSON.stringify([]));
                 localStorage.setItem('excelCreatedFlag', 'true');
 
-                // Download empty file
-                
                 updateExcelStatus();
                 updateRecordCount();
                 closeClearModal();
-                alert('🗑️ All records cleared. Empty Excel file downloaded.');
+                alert('🗑️ All records cleared successfully!');
             } else {
                 errorDiv.style.display = "block";
             }
@@ -927,6 +925,7 @@
             console.log(`💾 Save to: ${EXCEL_PATH}`);
             console.log('📊 All records stored in localStorage');
             console.log('🔒 Clear All requires password verification');
+            console.log('🗑️ Clear All does NOT download Excel file');
         });
 
         // Expose functions globally
