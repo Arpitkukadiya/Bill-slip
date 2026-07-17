@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Receipt Slip – Central Excel (C:\bill)</title>
+    <title>Receipt Slip – Auto Excel (C:\bill)</title>
     <!-- SheetJS Library for Excel -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
@@ -125,6 +125,20 @@
 
         .warning-box strong {
             color: #92400e;
+        }
+
+        .success-box {
+            background: #d1fae5;
+            border-left: 4px solid #10b981;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 18px;
+            font-size: 13px;
+            display: none;
+        }
+
+        .success-box strong {
+            color: #065f46;
         }
 
         .auto-badge {
@@ -340,7 +354,25 @@
             margin-top: 4px;
         }
 
-        /* --- PRINT STYLES - FIXED FOR NO CUT-OFF --- */
+        /* Quick Save Button */
+        .quick-save-btn {
+            background: #8b5cf6;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            width: 100%;
+            margin-top: 6px;
+        }
+
+        .quick-save-btn:hover {
+            background: #7c3aed;
+        }
+
+        /* --- PRINT STYLES --- */
         @media print {
             body {
                 background: white !important;
@@ -471,7 +503,7 @@
         </form>
     </div>
 
-    <!-- Setup / Excel Creation (Auto - shown only if needed) -->
+    <!-- Setup / Excel Creation -->
     <div class="setup-container" id="setupBox">
         <h2>📁 Auto Excel Setup</h2>
         <div class="info-box">
@@ -496,11 +528,24 @@
             <h2>📋 Checklist Entry Form</h2>
 
             <!-- Important Notice -->
-            <div class="warning-box">
-                <strong>⚠️ Important Note:</strong><br>
-                Due to browser security, Excel files are <strong>downloaded</strong> (not saved directly).<br>
-                Each download overwrites the previous file with ALL records.<br>
-                <span style="font-weight: 600; color: #dc2626;">Save the file to: C:\bill\Receipt_Master.xlsx</span>
+            <div class="warning-box" id="warningBox">
+                <strong>⚠️ Important:</strong><br>
+                Excel files are <strong>downloaded</strong> (not saved directly) due to browser security.<br>
+                <span style="font-weight: 600; color: #dc2626;">Save the downloaded file to: C:\bill\Receipt_Master.xlsx</span>
+                <br><br>
+                <button class="quick-save-btn" onclick="downloadAndGuide()">
+                    💾 Click to Download &amp; Save Guide
+                </button>
+            </div>
+
+            <!-- Success Message -->
+            <div class="success-box" id="successBox">
+                <strong>✅ File Downloaded!</strong><br>
+                Please save it to: <span style="font-family: monospace; background: #f3f4f6; padding: 2px 6px; border-radius: 4px;">C:\bill\Receipt_Master.xlsx</span>
+                <br><br>
+                <button class="quick-save-btn" style="background: #10b981;" onclick="downloadAndGuide()">
+                    📥 Download Again
+                </button>
             </div>
 
             <div class="info-box" id="excelStatusBox">
@@ -562,7 +607,7 @@
                 </div>
                 <div class="button-group">
                     <button type="button" class="btn-print" onclick="printAndRecord()">🖨️ Print Slip</button>
-                    <button type="button" class="btn-export" onclick="exportMasterExcel()">📁 Download Excel</button>
+                    <button type="button" class="btn-export" onclick="downloadAndGuide()">📥 Download Excel</button>
                 </div>
                 <div style="margin-top: 8px; display: flex; gap: 8px;">
                     <button type="button" class="btn-danger" style="flex:1; padding: 8px; font-size: 13px;" onclick="clearAllRecords()">🗑️ Clear All</button>
@@ -631,8 +676,6 @@
     <script>
         // --------------------------------------------------------------
         // AUTO EXCEL ENGINE – C:\bill\Receipt_Master.xlsx
-        // ALL data is stored in localStorage. Each export downloads the
-        // COMPLETE file with ALL records. Save it to C:\bill\Receipt_Master.xlsx
         // --------------------------------------------------------------
         const MASTER_FILE_NAME = 'Receipt_Master.xlsx';
         const EXCEL_PATH = 'C:\\bill\\Receipt_Master.xlsx';
@@ -653,7 +696,7 @@
             }
         }
 
-        // ---------- Auto Setup: Check & Create Excel (ONLY ONCE) ----------
+        // ---------- Auto Setup ----------
         function autoSetupExcel() {
             const stored = localStorage.getItem('masterReceiptData');
             const flag = localStorage.getItem('excelCreatedFlag');
@@ -672,7 +715,7 @@
             }, 1000);
         }
 
-        // ---------- Create Excel File (ONLY ON FIRST LOGIN) ----------
+        // ---------- Create Excel File ----------
         function createExcelFile() {
             try {
                 const initialData = [{
@@ -686,17 +729,6 @@
                     "Digital/Smart Watch": "1",
                     "Bluetooth/Earphone": "1",
                     Bag: "1"
-                }, {
-                    Date: new Date().toLocaleDateString('en-GB'),
-                    "Sr. No.": "2",
-                    "Box Number": "2",
-                    Mobile: "2",
-                    Camera: "2",
-                    "Remote Key": "2",
-                    "Power Bank": "2",
-                    "Digital/Smart Watch": "2",
-                    "Bluetooth/Earphone": "2",
-                    Bag: "2"
                 }];
 
                 localStorage.setItem('masterReceiptData', JSON.stringify(initialData));
@@ -706,13 +738,8 @@
                 document.getElementById("setupSuccess").style.display = "block";
                 document.getElementById("setupError").style.display = "none";
 
-                // Download the initial file
                 setTimeout(() => {
-                    const wb = XLSX.utils.book_new();
-                    const ws = XLSX.utils.json_to_sheet(initialData);
-                    XLSX.utils.book_append_sheet(wb, ws, 'Receipt Logs');
-                    XLSX.writeFile(wb, MASTER_FILE_NAME);
-                    console.log('✅ Excel file created with sample data');
+                    downloadExcelFile(initialData);
                 }, 500);
 
                 setTimeout(() => {
@@ -742,7 +769,7 @@
             updateRecordCount();
         }
 
-        // ---------- Update Excel Status Display ----------
+        // ---------- Update Excel Status ----------
         function updateExcelStatus() {
             const pathDisplay = document.getElementById("excelPathDisplayMain");
             const statusText = document.getElementById("excelStatusText");
@@ -765,7 +792,6 @@
             alert('✅ Status refreshed!');
         }
 
-        // ---------- Record Count ----------
         function updateRecordCount() {
             const stored = localStorage.getItem('masterReceiptData');
             let count = 0;
@@ -775,15 +801,75 @@
                     count = data.length;
                 } catch (e) {}
             }
-            const statusText = document.getElementById("excelStatusText");
-            if (statusText) {
-                statusText.textContent = `${MASTER_FILE_NAME} (${count} records)`;
-            }
             document.getElementById("totalRecordsDisplay").textContent = count;
             return count;
         }
 
-        // ---------- Core: Print + Auto-append to central Excel ----------
+        // ---------- Download Excel File ----------
+        function downloadExcelFile(data) {
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.json_to_sheet(data);
+            XLSX.utils.book_append_sheet(wb, ws, 'Receipt Logs');
+
+            // Try to use the suggested filename with path
+            try {
+                // This attempts to set the download filename
+                // Note: Browser will still ask where to save
+                XLSX.writeFile(wb, MASTER_FILE_NAME);
+
+                // Show success message with path
+                document.getElementById("successBox").style.display = "block";
+                document.getElementById("warningBox").style.display = "none";
+
+                // Auto-hide success after 8 seconds
+                setTimeout(() => {
+                    document.getElementById("successBox").style.display = "none";
+                    document.getElementById("warningBox").style.display = "block";
+                }, 8000);
+
+                console.log(`✅ Downloaded ${data.length} records as ${MASTER_FILE_NAME}`);
+                console.log(`💾 Please save to: ${EXCEL_PATH}`);
+            } catch (e) {
+                console.error('Download error:', e);
+                alert('Error downloading file. Please try again.');
+            }
+        }
+
+        // ---------- Get All Data ----------
+        function getAllData() {
+            const stored = localStorage.getItem('masterReceiptData');
+            if (stored) {
+                try {
+                    return JSON.parse(stored);
+                } catch (e) { return []; }
+            }
+            return [];
+        }
+
+        // ---------- Download with Guide ----------
+        function downloadAndGuide() {
+            const data = getAllData();
+            if (data.length === 0) {
+                alert('No records found. Please print at least one slip first.');
+                return;
+            }
+            downloadExcelFile(data);
+
+            // Show detailed guide
+            alert(
+                '📥 File Downloaded!\n\n' +
+                '📂 Please save the file to:\n' +
+                '   C:\\bill\\Receipt_Master.xlsx\n\n' +
+                '💡 Steps:\n' +
+                '1. In the "Save As" dialog, navigate to C:\\bill\n' +
+                '2. If "bill" folder doesn\'t exist, create it\n' +
+                '3. Save the file as "Receipt_Master.xlsx"\n' +
+                '4. Click Save\n\n' +
+                '✅ This will overwrite the existing file with ALL records.'
+            );
+        }
+
+        // ---------- Print + Auto-Download ----------
         function printAndRecord() {
             const date = document.getElementById("pDate").innerText;
             const srNo = document.getElementById("srNo").value || "-";
@@ -807,7 +893,7 @@
             document.getElementById("pBag").innerHTML = bag;
             document.getElementById("pBoxNumber").innerHTML = boxNumber;
 
-            // Append to master Excel (localStorage)
+            // Append to master
             appendRecordToMasterExcel({
                 Date: date,
                 "Sr. No.": srNo,
@@ -832,13 +918,16 @@
             updateExcelStatus();
             updateRecordCount();
 
-            // Auto-download the updated file
+            // Auto-download after print with a small delay
             setTimeout(() => {
-                exportMasterExcelSilent();
-            }, 500);
+                const data = getAllData();
+                if (data.length > 0) {
+                    downloadExcelFile(data);
+                }
+            }, 800);
         }
 
-        // ---------- Central Excel: append record ----------
+        // ---------- Append Record ----------
         function appendRecordToMasterExcel(newRecord) {
             try {
                 let masterData = [];
@@ -861,54 +950,6 @@
             }
         }
 
-        // ---------- Silent Export (auto-download after print) ----------
-        function exportMasterExcelSilent() {
-            try {
-                let masterData = [];
-                const stored = localStorage.getItem('masterReceiptData');
-                if (stored) {
-                    try {
-                        masterData = JSON.parse(stored);
-                    } catch (e) { masterData = []; }
-                }
-
-                if (masterData.length === 0) return;
-
-                const wb = XLSX.utils.book_new();
-                const ws = XLSX.utils.json_to_sheet(masterData);
-                XLSX.utils.book_append_sheet(wb, ws, 'Receipt Logs');
-                XLSX.writeFile(wb, MASTER_FILE_NAME);
-
-                console.log(`✅ Auto-downloaded ${masterData.length} records`);
-            } catch (error) {
-                console.error('Auto-export error:', error);
-            }
-        }
-
-        // ---------- Manual Export Master Excel ----------
-        function exportMasterExcel() {
-            let masterData = [];
-            const stored = localStorage.getItem('masterReceiptData');
-            if (stored) {
-                try {
-                    masterData = JSON.parse(stored);
-                } catch (e) { masterData = []; }
-            }
-
-            if (masterData.length === 0) {
-                alert('No records found. Please print at least one slip first.');
-                return;
-            }
-
-            const wb = XLSX.utils.book_new();
-            const ws = XLSX.utils.json_to_sheet(masterData);
-            XLSX.utils.book_append_sheet(wb, ws, 'Receipt Logs');
-            XLSX.writeFile(wb, MASTER_FILE_NAME);
-
-            updateExcelStatus();
-            alert(`✅ Downloaded ${masterData.length} records as ${MASTER_FILE_NAME}\n📂 Save to: ${EXCEL_PATH}`);
-        }
-
         // ---------- Clear All Records ----------
         function clearAllRecords() {
             if (confirm('⚠️ Delete ALL records from the central Excel file?')) {
@@ -916,14 +957,12 @@
                 localStorage.setItem('excelCreatedFlag', 'true');
                 localStorage.setItem('excelPath', EXCEL_PATH);
 
-                const wb = XLSX.utils.book_new();
-                const ws = XLSX.utils.json_to_sheet([]);
-                XLSX.utils.book_append_sheet(wb, ws, 'Receipt Logs');
-                XLSX.writeFile(wb, MASTER_FILE_NAME);
+                // Download empty file
+                downloadExcelFile([]);
 
                 updateExcelStatus();
                 updateRecordCount();
-                alert('🗑️ All records cleared.');
+                alert('🗑️ All records cleared. Empty Excel file downloaded.');
             }
         }
 
@@ -934,14 +973,13 @@
 
             console.log('🟢 Auto Excel System ready');
             console.log(`📂 File: ${MASTER_FILE_NAME}`);
-            console.log('⚠️ Browser limitation: File is DOWNLOADED, not saved directly');
-            console.log('💡 Save the downloaded file to: C:\\bill\\Receipt_Master.xlsx');
-            console.log('📊 All records are stored in localStorage and included in every download');
+            console.log(`💾 Save to: ${EXCEL_PATH}`);
+            console.log('📊 All records stored in localStorage');
         });
 
         // Expose functions globally
         window.printAndRecord = printAndRecord;
-        window.exportMasterExcel = exportMasterExcel;
+        window.downloadAndGuide = downloadAndGuide;
         window.clearAllRecords = clearAllRecords;
         window.refreshExcelStatus = refreshExcelStatus;
         window.createExcelFile = createExcelFile;
